@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>DeviceOps Console</title>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#request-input">跳到请求输入</a>
+
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div>
+          <strong>DeviceOps</strong>
+          <span>CONTROL CONSOLE</span>
+        </div>
+      </div>
+
+      <div class="runtime-status" aria-label="运行状态">
+        <span class="status-dot" id="health-dot"></span>
+        <span id="health-label">连接中</span>
+        <span class="runtime-separator"></span>
+        <span id="backend-label">BACKEND</span>
+        <span class="runtime-separator"></span>
+        <span id="planner-label">PLANNER</span>
+      </div>
+
+      <a class="docs-link" href="/docs" target="_blank" rel="noreferrer">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M15 3h6v6"></path>
+          <path d="M10 14 21 3"></path>
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+        </svg>
+        API
+      </a>
+    </header>
+
+    <main class="workspace">
+      <aside class="device-panel" aria-label="设备状态">
+        <div class="panel-heading">
+          <span>设备</span>
+          <strong>CP-02S LAB</strong>
+        </div>
+
+        <div class="device-visual" aria-label="五端口设备示意">
+          <div class="device-topline">
+            <span>160W</span>
+            <span class="device-led"></span>
+          </div>
+          <div class="device-ports" id="device-ports">
+            <span data-visual-port="1">C1</span>
+            <span data-visual-port="2">C2</span>
+            <span data-visual-port="3">C3</span>
+            <span data-visual-port="4">C4</span>
+            <span data-visual-port="5">A1</span>
+          </div>
+        </div>
+
+        <div class="panel-section-title">
+          <span>端口遥测</span>
+          <button class="icon-button" id="refresh-status" type="button"
+                  aria-label="刷新设备状态" title="刷新设备状态">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5"></path>
+              <path d="M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="port-list" id="port-list"></div>
+
+        <div class="device-footer">
+          <span>目标设备</span>
+          <strong>CP02S-LAB-01</strong>
+        </div>
+      </aside>
+
+      <section class="conversation" aria-labelledby="conversation-title">
+        <header class="conversation-header">
+          <div>
+            <span class="section-kicker">AGENT SESSION</span>
+            <h1 id="conversation-title">设备运维会话</h1>
+          </div>
+          <span class="session-indicator" id="session-indicator">就绪</span>
+        </header>
+
+        <div class="messages" id="messages" role="log" aria-live="polite">
+          <article class="message assistant-message">
+            <div class="message-avatar" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+              </svg>
+            </div>
+            <div class="message-content">
+              <div class="message-meta">
+                <strong>DeviceOps</strong>
+                <span>当前</span>
+              </div>
+              <p>设备连接准备就绪。</p>
+            </div>
+          </article>
+        </div>
+
+        <section class="confirmation" id="confirmation" hidden
+                 aria-labelledby="confirmation-title">
+          <div class="confirmation-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 13c0 5-3.5 7.5-7.7 9a1 1 0 0 1-.6 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.2-2.7a1.2 1.2 0 0 1 1.6 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"></path>
+              <path d="m9 12 2 2 4-4"></path>
+            </svg>
+          </div>
+          <div class="confirmation-copy">
+            <span>等待操作确认</span>
+            <strong id="confirmation-title">确认设备控制</strong>
+            <p id="confirmation-question"></p>
+            <div class="confirmation-before" id="confirmation-before"></div>
+          </div>
+          <div class="confirmation-actions">
+            <button class="secondary-button" id="reject-control" type="button">
+              取消
+            </button>
+            <button class="danger-button" id="approve-control" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m9 12 2 2 4-4"></path>
+                <path d="M20 13c0 5-3.5 7.5-7.7 9a1 1 0 0 1-.6 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.2-2.7a1.2 1.2 0 0 1 1.6 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"></path>
+              </svg>
+              确认执行
+            </button>
+          </div>
+        </section>
+
+        <div class="quick-actions" aria-label="快捷请求">
+          <button type="button" data-request="查询设备整体状态">整体状态</button>
+          <button type="button" data-request="查询2号端口状态">2 号端口</button>
+          <button type="button" data-request="2号端口为什么无法充电">诊断 2 号端口</button>
+          <button type="button" data-request="打开2号端口">打开 2 号端口</button>
+          <button type="button" data-request="关闭2号端口">关闭 2 号端口</button>
+        </div>
+
+        <form class="composer" id="request-form">
+          <label class="sr-only" for="request-input">设备运维请求</label>
+          <textarea id="request-input" name="request" rows="1"
+                    placeholder="查询设备整体状态" required></textarea>
+          <button class="send-button" id="send-button" type="submit"
+                  aria-label="发送请求" title="发送请求">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m22 2-7 20-4-9-9-4Z"></path>
+              <path d="M22 2 11 13"></path>
+            </svg>
+          </button>
+        </form>
+      </section>
+
+      <aside class="execution-panel" aria-label="执行详情">
+        <div class="panel-heading">
+          <span>执行</span>
+          <strong id="run-status">IDLE</strong>
+        </div>
+
+        <dl class="command-facts">
+          <div>
+            <dt>动作</dt>
+            <dd id="command-action">等待请求</dd>
+          </div>
+          <div>
+            <dt>端口</dt>
+            <dd id="command-port">-</dd>
+          </div>
+          <div>
+            <dt>目标</dt>
+            <dd id="command-target">-</dd>
+          </div>
+          <div>
+            <dt>验证</dt>
+            <dd id="verification-status">-</dd>
+          </div>
+        </dl>
+
+        <div class="panel-section-title">
+          <span>工作流 Trace</span>
+        </div>
+        <ol class="trace-list" id="trace-list">
+          <li class="trace-empty">等待执行</li>
+        </ol>
+
+        <div class="panel-section-title">
+          <span>结果证据</span>
+        </div>
+        <dl class="evidence-list" id="evidence-list">
+          <div><dt>状态</dt><dd>暂无</dd></div>
+        </dl>
+      </aside>
+    </main>
+
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>

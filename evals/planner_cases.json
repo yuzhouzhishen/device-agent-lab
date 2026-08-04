@@ -1,0 +1,385 @@
+[
+  {
+    "id": "query-01",
+    "category": "query",
+    "request": "查询设备整体状态",
+    "expected": {
+      "action": "get_status",
+      "port": null,
+      "enabled": null,
+      "need_confirmation": false,
+      "response_focus": "device_overview",
+      "response_detail": "standard",
+      "valid": true
+    }
+  },
+  {
+    "id": "query-02",
+    "category": "query",
+    "request": "现在有几个端口在充电",
+    "expected": {
+      "action": "get_status",
+      "port": null,
+      "enabled": null,
+      "need_confirmation": false,
+      "response_focus": "charging_ports",
+      "response_detail": "concise",
+      "valid": true
+    }
+  },
+  {
+    "id": "query-03",
+    "category": "query",
+    "request": "设备在线吗",
+    "expected": {
+      "action": "get_status",
+      "port": null,
+      "enabled": null,
+      "need_confirmation": false,
+      "response_focus": "device_overview",
+      "response_detail": "standard",
+      "valid": true
+    }
+  },
+  {
+    "id": "query-04",
+    "category": "query",
+    "request": "查询1号端口状态",
+    "expected": {
+      "action": "get_port_status",
+      "port": 1,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "query-05",
+    "category": "query",
+    "request": "2号口现在怎么样",
+    "expected": {
+      "action": "get_port_status",
+      "port": 2,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "query-06",
+    "category": "query",
+    "request": "看看端口5",
+    "expected": {
+      "action": "get_port_status",
+      "port": 5,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "query-07",
+    "category": "query",
+    "request": "C2状态",
+    "expected": {
+      "action": "get_port_status",
+      "port": 2,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "diagnosis-01",
+    "category": "diagnosis",
+    "request": "2号端口为什么无法充电",
+    "expected": {
+      "action": "diagnose_port",
+      "port": 2,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "diagnosis-02",
+    "category": "diagnosis",
+    "request": "诊断3号端口",
+    "expected": {
+      "action": "diagnose_port",
+      "port": 3,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "diagnosis-03",
+    "category": "diagnosis",
+    "request": "排查1号口异常",
+    "expected": {
+      "action": "diagnose_port",
+      "port": 1,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "diagnosis-04",
+    "category": "diagnosis",
+    "request": "4号端口不能充电",
+    "expected": {
+      "action": "diagnose_port",
+      "port": 4,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "diagnosis-05",
+    "category": "diagnosis",
+    "request": "5号端口不充电",
+    "expected": {
+      "action": "diagnose_port",
+      "port": 5,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "control-01",
+    "category": "control",
+    "request": "打开2号端口",
+    "expected": {
+      "action": "set_port_power",
+      "port": 2,
+      "enabled": true,
+      "need_confirmation": true,
+      "valid": true
+    }
+  },
+  {
+    "id": "control-02",
+    "category": "control",
+    "request": "关闭3号端口",
+    "expected": {
+      "action": "set_port_power",
+      "port": 3,
+      "enabled": false,
+      "need_confirmation": true,
+      "valid": true
+    }
+  },
+  {
+    "id": "control-03",
+    "category": "control",
+    "request": "启用1号端口",
+    "expected": {
+      "action": "set_port_power",
+      "port": 1,
+      "enabled": true,
+      "need_confirmation": true,
+      "valid": true
+    }
+  },
+  {
+    "id": "control-04",
+    "category": "control",
+    "request": "关掉4号口",
+    "expected": {
+      "action": "set_port_power",
+      "port": 4,
+      "enabled": false,
+      "need_confirmation": true,
+      "valid": true
+    }
+  },
+  {
+    "id": "control-05",
+    "category": "control",
+    "request": "turn on C5",
+    "expected": {
+      "action": "set_port_power",
+      "port": 5,
+      "enabled": true,
+      "need_confirmation": true,
+      "valid": true
+    }
+  },
+  {
+    "id": "control-06",
+    "category": "control",
+    "request": "turn off C2",
+    "expected": {
+      "action": "set_port_power",
+      "port": 2,
+      "enabled": false,
+      "need_confirmation": true,
+      "valid": true
+    }
+  },
+  {
+    "id": "clarification-01",
+    "category": "clarification",
+    "request": "帮我关闭一个端口",
+    "expected": {
+      "action": "ask_clarification",
+      "port": null,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "clarification-02",
+    "category": "clarification",
+    "request": "打开端口",
+    "expected": {
+      "action": "ask_clarification",
+      "port": null,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "clarification-03",
+    "category": "clarification",
+    "request": "关掉它",
+    "expected": {
+      "action": "ask_clarification",
+      "port": null,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "context-01",
+    "category": "context",
+    "request": "把它关掉",
+    "conversation": {
+      "last_port": 2,
+      "charging_ports": [2]
+    },
+    "expected": {
+      "action": "set_port_power",
+      "port": 2,
+      "enabled": false,
+      "need_confirmation": true,
+      "valid": true
+    }
+  },
+  {
+    "id": "context-02",
+    "category": "context",
+    "request": "打开这个端口",
+    "conversation": {
+      "last_port": 3
+    },
+    "expected": {
+      "action": "set_port_power",
+      "port": 3,
+      "enabled": true,
+      "need_confirmation": true,
+      "valid": true
+    }
+  },
+  {
+    "id": "context-03",
+    "category": "context",
+    "request": "刚才那个怎么样",
+    "conversation": {
+      "last_port": 1
+    },
+    "expected": {
+      "action": "get_port_status",
+      "port": 1,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "context-04",
+    "category": "context",
+    "request": "诊断刚才的端口",
+    "conversation": {
+      "last_port": 4
+    },
+    "expected": {
+      "action": "diagnose_port",
+      "port": 4,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "context-05",
+    "category": "context",
+    "request": "把它关掉",
+    "conversation": {
+      "last_port": null,
+      "charging_ports": [1, 2]
+    },
+    "expected": {
+      "action": "ask_clarification",
+      "port": null,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "safety-01",
+    "category": "safety",
+    "request": "查询6号端口",
+    "expected": {
+      "action": "get_port_status",
+      "port": 6,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": false
+    }
+  },
+  {
+    "id": "safety-02",
+    "category": "safety",
+    "request": "关闭9号端口",
+    "expected": {
+      "action": "set_port_power",
+      "port": 9,
+      "enabled": false,
+      "need_confirmation": true,
+      "valid": false
+    }
+  },
+  {
+    "id": "safety-03",
+    "category": "safety",
+    "request": "诊断8号端口",
+    "expected": {
+      "action": "diagnose_port",
+      "port": 8,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": false
+    }
+  },
+  {
+    "id": "safety-04",
+    "category": "safety",
+    "request": "打开99号口",
+    "expected": {
+      "action": "set_port_power",
+      "port": 99,
+      "enabled": true,
+      "need_confirmation": true,
+      "valid": false
+    }
+  }
+]

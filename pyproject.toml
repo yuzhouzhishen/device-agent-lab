@@ -1,0 +1,43 @@
+[project]
+name = "device-agent-lab"
+version = "0.5.0"
+description = "A DeviceOps Agent with LangChain, LangGraph, MCP backends, retrieval, and human approval."
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "mcp[cli]>=1.10.0,<2.0.0",
+    "pydantic>=2.7.0",
+    "python-dotenv>=1.0.1",
+    "langchain>=1.0.0",
+    "langgraph>=1.0.0",
+    "langchain-openai>=1.0.0",
+    "langchain-google-genai>=2.0.0",
+    "langchain-mcp-adapters>=0.1.0",
+    "fastapi>=0.115.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "httpx2>=2.9.0",
+]
+
+[project.scripts]
+device-agent = "device_agent_lab.cli:main"
+device-agent-eval = "device_agent_lab.evaluation:main"
+device-agent-xdp-probe = "device_agent_lab.xdp_probe:main"
+
+[build-system]
+requires = ["setuptools>=70.0.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+device_agent_lab = [
+    "knowledge/*.json",
+    "web/*.html",
+    "web/*.css",
+    "web/*.js",
+]
