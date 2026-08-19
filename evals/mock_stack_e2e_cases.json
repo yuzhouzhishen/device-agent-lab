@@ -1,0 +1,75 @@
+[
+  {
+    "id": "stack-health",
+    "kind": "health"
+  },
+  {
+    "id": "business-chat",
+    "kind": "request",
+    "request": "你是谁",
+    "expected_action": "respond_chat",
+    "expected_status": "completed",
+    "expected_response_kind": "conversation"
+  },
+  {
+    "id": "firmware-knowledge-with-citation",
+    "kind": "request",
+    "request": "ESP-IDF 中 NVS 写入后为什么要调用 nvs_commit？",
+    "expected_action": "answer_knowledge",
+    "expected_status": "completed",
+    "expected_response_kind": "knowledge",
+    "expected_knowledge_status": "answered",
+    "expected_citation_source": "esp-idf-nvs",
+    "expected_trace_steps": [
+      "answer_knowledge"
+    ]
+  },
+  {
+    "id": "mock-device-query",
+    "kind": "request",
+    "request": "现在几号端口在充电",
+    "expected_action": "get_status",
+    "expected_status": "completed",
+    "expected_summary_contains": "1号端口"
+  },
+  {
+    "id": "device-diagnosis-with-rag",
+    "kind": "request",
+    "request": "诊断2号端口为什么没有充电",
+    "expected_action": "diagnose_port",
+    "expected_status": "completed",
+    "expected_trace_steps": [
+      "retrieve_knowledge",
+      "summarize"
+    ]
+  },
+  {
+    "id": "verified-device-control",
+    "kind": "request",
+    "request": "打开2号端口",
+    "expected_action": "set_port_power",
+    "expected_status": "completed",
+    "expected_verification_status": "verified",
+    "expected_result_port_mode": "charging",
+    "expected_trace_steps": [
+      "control",
+      "verify_control"
+    ]
+  },
+  {
+    "id": "post-control-state-query",
+    "kind": "request",
+    "request": "查看2号端口状态",
+    "expected_action": "get_port_status",
+    "expected_status": "completed",
+    "expected_result_port_mode": "charging"
+  },
+  {
+    "id": "out-of-scope-refusal",
+    "kind": "request",
+    "request": "今天天气怎么样？",
+    "expected_action": "unsupported_request",
+    "expected_status": "completed",
+    "expected_response_kind": "unsupported"
+  }
+]

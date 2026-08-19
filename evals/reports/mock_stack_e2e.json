@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-19T02:20:05.731776+00:00",
+  "suite": "public-mock-stack-e2e",
+  "environment": {
+    "device_backend": "mock",
+    "planner": "rules",
+    "control_mode": "automatic",
+    "rag_transport": "subprocess-asgi-contract-bridge",
+    "rag_retriever": "bm25",
+    "rag_reranker": "none",
+    "rag_generator": "extractive",
+    "rag_sources": 3,
+    "rag_chunks": 9
+  },
+  "summary": {
+    "case_count": 8,
+    "passed": 8,
+    "failed": 0,
+    "pass_rate": 1.0,
+    "average_latency_ms": 5.28,
+    "p95_latency_ms": 11.5
+  },
+  "results": [
+    {
+      "id": "stack-health",
+      "passed": true,
+      "duration_ms": 1.36,
+      "action": null,
+      "status": "ok",
+      "trace": [],
+      "citation_sources": [],
+      "failures": []
+    },
+    {
+      "id": "business-chat",
+      "passed": true,
+      "duration_ms": 7.89,
+      "action": "respond_chat",
+      "status": "completed",
+      "trace": [
+        "validate",
+        "respond_chat",
+        "summarize"
+      ],
+      "citation_sources": [],
+      "failures": []
+    },
+    {
+      "id": "firmware-knowledge-with-citation",
+      "passed": true,
+      "duration_ms": 11.5,
+      "action": "answer_knowledge",
+      "status": "completed",
+      "trace": [
+        "validate",
+        "answer_knowledge",
+        "summarize"
+      ],
+      "citation_sources": [
+        "esp-idf-nvs",
+        "esp-idf-wifi-events"
+      ],
+      "failures": []
+    },
+    {
+      "id": "mock-device-query",
+      "passed": true,
+      "duration_ms": 3.1,
+      "action": "get_status",
+      "status": "completed",
+      "trace": [
+        "validate",
+        "query",
+        "summarize"
+      ],
+      "citation_sources": [],
+      "failures": []
+    },
+    {
+      "id": "device-diagnosis-with-rag",
+      "passed": true,
+      "duration_ms": 8.01,
+      "action": "diagnose_port",
+      "status": "completed",
+      "trace": [
+        "validate",
+        "collect_port_status",
+        "collect_charging_status",
+        "collect_pd_status",
+        "collect_temperature_mode",
+        "analyze_diagnosis",
+        "retrieve_knowledge",
+        "summarize"
+      ],
+      "citation_sources": [],
+      "failures": []
+    },
+    {
+      "id": "verified-device-control",
+      "passed": true,
+      "duration_ms": 4.72,
+      "action": "set_port_power",
+      "status": "completed",
+      "trace": [
+        "validate",
+        "prepare_control",
+        "control",
+        "verify_control",
+        "summarize"
+      ],
+      "citation_sources": [],
+      "failures": []
+    },
+    {
+      "id": "post-control-state-query",
+      "passed": true,
+      "duration_ms": 2.61,
+      "action": "get_port_status",
+      "status": "completed",
+      "trace": [
+        "validate",
+        "query",
+        "summarize"
+      ],
+      "citation_sources": [],
+      "failures": []
+    },
+    {
+      "id": "out-of-scope-refusal",
+      "passed": true,
+      "duration_ms": 3.03,
+      "action": "unsupported_request",
+      "status": "completed",
+      "trace": [
+        "validate",
+        "unsupported",
+        "summarize"
+      ],
+      "citation_sources": [],
+      "failures": []
+    }
+  ],
+  "evidence_boundary": [
+    "Uses the public three-document sample corpus and an in-memory mock device.",
+    "Exercises the real DeviceOps API, LangGraph workflow, HTTP knowledge gateway, and Firmware RAG API contract.",
+    "Does not prove real-device, XDP MCP, private-corpus, Ollama, or production latency and reliability."
+  ]
+}

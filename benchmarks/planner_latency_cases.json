@@ -1,0 +1,32 @@
+[
+  {
+    "id": "chat-identity",
+    "request": "你是谁",
+    "expected_action": "respond_chat"
+  },
+  {
+    "id": "device-charging-ports",
+    "request": "现在几号端口在充电",
+    "expected_action": "get_status"
+  },
+  {
+    "id": "port-status",
+    "request": "查看 2 号端口状态",
+    "expected_action": "get_port_status"
+  },
+  {
+    "id": "port-diagnosis",
+    "request": "诊断 2 号端口为什么没有充电",
+    "expected_action": "diagnose_port"
+  },
+  {
+    "id": "port-control",
+    "request": "关闭 2 号端口",
+    "expected_action": "set_port_power"
+  },
+  {
+    "id": "firmware-knowledge",
+    "request": "ESP-IDF 中 NVS 初始化失败应该怎么处理？",
+    "expected_action": "answer_knowledge"
+  }
+]

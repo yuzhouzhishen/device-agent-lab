@@ -11,7 +11,7 @@
 
 | 层次 | 实现 |
 | --- | --- |
-| 意图规划 | 明确问候/身份/能力走规则快速路径；其余由 Ollama `llama3.1:8b` 输出 JSON Schema；模型后确定性归一化与规则降级 |
+| 意图规划 | 高置信度聊天、知识、查询、诊断和控制走规则快速路径；模糊请求由 Ollama `llama3.1:8b` 输出 JSON Schema；模型后确定性归一化与规则降级 |
 | 动作协议 | Pydantic `DeviceCommand` 统一约束聊天、知识、设备、澄清、范围外请求和控制标记 |
 | 工作流 | LangGraph 编排业务对话、直接 RAG、上下文解释、范围控制、设备查询/诊断/控制 |
 | 设备接入 | `DeviceGateway` 适配 Mock、本地 MCP、远程 XDP MCP |
@@ -23,7 +23,7 @@
 | 交互建议 | 首屏仅显示通用入口；完成回答后按本轮命令、端口和结果生成可执行追问 |
 | 可观测性 | 节点 Trace、逐步耗时、模型 token、JSONL 审计、知识引用 |
 | 部署 | Docker Compose；已在 macOS OrbStack 验证 |
-| 测试 | `147 passed` |
+| 测试 | `159 passed` |
 
 ## 架构
 
@@ -31,8 +31,9 @@
 flowchart LR
     U["Web / API / CLI"] --> S["DeviceOpsService"]
     S --> P["Ollama Planner"]
-    S --> F["聊天快速路径"]
+    S --> F["高置信度规则快速路径"]
     P --> C["结构化业务决策"]
+    F --> C
     P -. "失败降级" .-> R["Rule Planner"]
     C --> G["LangGraph"]
     G --> H["业务对话 / 澄清 / 范围控制"]
@@ -116,6 +117,33 @@ ollama pull llama3.1:8b
 ```bash
 UV_CACHE_DIR=.uv-cache uv sync --extra dev
 ```
+
+### 一键离线 Mock 演示
+
+将本仓库与 `firmware-knowledge-agent` 放在同一父目录，并分别执行过一次
+`uv sync --extra dev` 后运行：
+
+```bash
+./scripts/run_mock_stack.py
+```
+
+脚本会以 Rule Planner、Mock 设备、公开样例语料、BM25 和抽取式生成启动两个
+服务，完成端口占用检查和健康检查，并在 `Ctrl+C` 后清理子进程。该模式不读取
+API Key、私有语料或真实设备凭证。默认入口为 DeviceOps `http://127.0.0.1:8000/`
+和 Firmware RAG `http://127.0.0.1:8011/`。
+
+不占用 TCP 端口的跨项目闭环评测：
+
+```bash
+.venv/bin/python scripts/evaluate_mock_stack.py
+```
+
+它通过兄弟项目自己的 Python 环境调用真实 Firmware RAG FastAPI 端点，覆盖
+`DeviceOps API -> LangGraph -> HttpKnowledgeGateway -> Firmware RAG API`，以及
+Mock 查询、诊断、自动控制和操作后校验。当前公开用例为 `8/8`，本机运行 P95
+为 `11.50 ms`；该耗时只属于 Rule Planner、3 篇公开语料和 Mock 设备，不代表
+Ollama、真实 MCP 或生产网络。逐条报告见
+[`evals/reports/mock_stack_e2e.json`](evals/reports/mock_stack_e2e.json)。
 
 离线 Mock：
 
@@ -202,7 +230,10 @@ docker compose -f deploy/compose.yaml ps
 
 ## 验证结果
 
-- 147 项自动化测试通过。
+- 159 项自动化测试通过。
+- 8 条公开 Mock 跨项目闭环用例全部通过，覆盖健康检查、业务对话、带来源引用的
+  NVS 知识问答、设备查询、RAG 增强诊断、控制后校验、状态复查和范围外拒答；
+  本机 P95 `11.50 ms`。
 - 40 条人工标注 Planner Eval 覆盖聊天、知识、范围外请求、上下文、查询、诊断、
   控制、澄清和安全；规则基线 `40/40`。
 - 本地 `llama3.1:8b` 使用同一数据集完成真实结构化路由评测，结果见
@@ -228,6 +259,16 @@ docker compose -f deploy/compose.yaml ps
 node --check src/device_agent_lab/web/app.js
 ```
 
+本机 Ollama 规划延迟对照：
+
+```bash
+.venv/bin/python scripts/benchmark_planner_latency.py --repeats 2
+```
+
+该命令使用同一批明确请求，对比“全部走 `llama3.1:8b`”与“高置信度规则快路径，
+模糊请求保留模型规划”。报告仅衡量 Planner 墙钟耗时，不包含 UI、RAG、设备或
+网络延迟；未在当前机器重新执行前不应引用具体加速倍数。
+
 ## 目录
 
 ```text
@@ -245,7 +286,9 @@ src/device_agent_lab/
   api.py                  # FastAPI
   web/                    # 运维控制台
 deploy/compose.yaml       # 双项目 OrbStack 编排
-evals/                    # Planner Eval
+benchmarks/               # 本地 Planner 延迟基准输入
+evals/                    # Planner 与跨项目闭环 Eval
+scripts/                  # 一键演示、闭环评测与延迟基准
 tests/                    # 自动化测试
 ```
 

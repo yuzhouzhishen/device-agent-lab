@@ -39,7 +39,7 @@ class CommandPlanner(Protocol):
 
 
 class FastPathCommandPlanner:
-    """Answer unambiguous business small talk without paying model latency."""
+    """Bypass model latency only for high-confidence deterministic routes."""
 
     def __init__(self, planner: CommandPlanner) -> None:
         self._planner = planner
@@ -51,12 +51,12 @@ class FastPathCommandPlanner:
         context: DeviceAgentContext,
         conversation: DeviceConversationContext | None = None,
     ) -> PlanResult:
-        if _is_conversation_request(request):
-            result = await self._rules.plan(
-                request,
-                context,
-                conversation,
-            )
+        result = await self._rules.plan(request, context, conversation)
+        if _is_high_confidence_fast_path(
+            request,
+            result.command,
+            conversation,
+        ):
             return result.model_copy(update={"model": "rules-fast-path"})
         return await self._planner.plan(request, context, conversation)
 
@@ -416,6 +416,69 @@ def _extract_port(request: str) -> int | None:
         if match:
             return int(match.group(1))
     return None
+
+
+def _is_high_confidence_fast_path(
+    request: str,
+    command: DeviceCommand,
+    conversation: DeviceConversationContext | None,
+) -> bool:
+    """Return true only when explicit language fully determines the route."""
+    if _is_conversation_request(request):
+        return True
+    if command.action == "set_port_power":
+        return (
+            command.port is not None
+            and _extract_power_intent(request) is not None
+        )
+    if command.action == "answer_knowledge":
+        return _is_knowledge_request(request)
+    if command.action == "explain_previous":
+        return (
+            conversation is not None
+            and bool(conversation.recent_turns)
+            and _is_explanation_request(request)
+        )
+    if command.action == "diagnose_port":
+        return (
+            _extract_port(request) is not None
+            and _has_diagnostic_intent(request)
+        )
+    if command.action == "diagnose_device":
+        return _has_diagnostic_intent(request) and bool(
+            re.search(r"设备|整机|整体", request, flags=re.IGNORECASE)
+        )
+    if command.action == "get_port_status":
+        return _extract_port(request) is not None and bool(
+            re.search(r"端口|[0-9一二三四五六七八九十]+号口", request)
+        )
+    if command.action == "get_status":
+        return _is_explicit_device_query(request)
+    return False
+
+
+def _is_explicit_device_query(request: str) -> bool:
+    normalized = re.sub(r"\s+", "", request.lower())
+    has_subject = any(
+        cue in normalized
+        for cue in ("设备", "整机", "端口", "充电口", "输出口")
+    )
+    has_query = any(
+        cue in normalized
+        for cue in (
+            "状态",
+            "在线",
+            "连接",
+            "充电",
+            "供电",
+            "工作",
+            "功率",
+            "哪些",
+            "几号",
+            "多少",
+        )
+    )
+    return has_subject and has_query
 
 
 def _normalize_model_payload(
@@ -806,6 +869,10 @@ def _is_knowledge_request(request: str) -> bool:
         "启动流程",
         "升级流程",
         "回滚",
+        "esp-idf",
+        "nvs",
+        "freertos",
+        "任务调度",
         "bootloader",
         "fpga",
         "sw356",

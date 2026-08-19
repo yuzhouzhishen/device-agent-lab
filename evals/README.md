@@ -110,3 +110,22 @@ Ollama 首轮为 `38/40`：一条整机在线查询缺少默认回答焦点，�
 这些失败没有被用于继续修改规则，因此该结果与 40 条开发回归集的 `40/40`
 不能混为一谈。逐条结果见 `reports/planner_holdout_v1_rules.json` 和
 `reports/planner_holdout_v1_ollama.json`。
+
+## 双项目闭环评测
+
+`mock_stack_e2e_cases.json` 覆盖 8 条公开、可重复的集成用例：双服务健康、业务
+对话、带引用知识问答、设备状态查询、RAG 增强诊断、自动控制、控制后状态复查和
+范围外拒答。运行：
+
+```bash
+.venv/bin/python scripts/evaluate_mock_stack.py
+```
+
+评测器使用兄弟 `firmware-knowledge-agent` 仓库自己的虚拟环境，通过子进程 ASGI
+合同桥调用真实 FastAPI 端点，不占用端口。2026-08-19 本机结果为 `8/8`，平均
+`5.28 ms`，P95 `11.50 ms`，逐条结果见
+`reports/mock_stack_e2e.json`。
+
+该报告使用 3 篇公开样例语料、Rule Planner 和内存 Mock 设备。它证明两个项目
+之间的接口、工作流和控制校验能闭环，不证明 Ollama、XDP MCP、私有语料、真机
+链路或生产环境性能。

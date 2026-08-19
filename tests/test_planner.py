@@ -168,6 +168,15 @@ class RuleBasedCommandPlannerTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(command.intent, "knowledge_query")
         self.assertEqual(command.action, "answer_knowledge")
 
+    async def test_routes_esp_idf_nvs_question_to_knowledge(self) -> None:
+        command = await self._plan(
+            "ESP-IDF 中 NVS 初始化失败应该怎么处理？",
+            self.context,
+        )
+
+        self.assertEqual(command.intent, "knowledge_query")
+        self.assertEqual(command.action, "answer_knowledge")
+
     async def test_routes_unrelated_question_out_of_scope(self) -> None:
         command = await self._plan("今天天气怎么样？", self.context)
 
@@ -342,6 +351,39 @@ class ModelPlannerTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.command.action, "respond_chat")
         self.assertEqual(result.model, "rules-fast-path")
         self.assertIn("DeviceOps", result.command.reply)
+
+    async def test_fast_path_handles_explicit_device_query_without_model(
+        self,
+    ) -> None:
+        planner = FastPathCommandPlanner(FailingPlanner())
+
+        result = await planner.plan("现在几号端口在充电", self.context)
+
+        self.assertEqual(result.command.action, "get_status")
+        self.assertEqual(result.command.response_focus, "charging_ports")
+        self.assertEqual(result.model, "rules-fast-path")
+
+    async def test_fast_path_handles_explicit_control_without_model(
+        self,
+    ) -> None:
+        planner = FastPathCommandPlanner(FailingPlanner())
+
+        result = await planner.plan("关闭2号端口", self.context)
+
+        self.assertEqual(result.command.action, "set_port_power")
+        self.assertEqual(result.command.port, 2)
+        self.assertFalse(result.command.enabled)
+        self.assertEqual(result.model, "rules-fast-path")
+
+    async def test_fast_path_handles_explicit_knowledge_without_model(
+        self,
+    ) -> None:
+        planner = FastPathCommandPlanner(FailingPlanner())
+
+        result = await planner.plan("PD 3.0 协议是什么？", self.context)
+
+        self.assertEqual(result.command.action, "answer_knowledge")
+        self.assertEqual(result.model, "rules-fast-path")
 
     async def test_fast_path_does_not_match_hi_inside_english_words(
         self,
