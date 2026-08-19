@@ -29,6 +29,30 @@ class RuntimeSettingsTest(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(settings.allowed_ports, (1, 2, 4))
 
+    async def test_integrated_runtime_options_are_parsed(self) -> None:
+        settings = RuntimeSettings.from_mapping(
+            {
+                "DEVICE_PLANNER": "ollama",
+                "DEVICE_CONTROL_MODE": "automatic",
+                "OLLAMA_MODEL": "llama3.1:8b",
+                "FIRMWARE_RAG_URL": "http://127.0.0.1:8011",
+                "FIRMWARE_RAG_TIMEOUT_SECONDS": "95",
+                "GENERAL_KNOWLEDGE_FALLBACK": "true",
+                "GENERAL_KNOWLEDGE_TIMEOUT_SECONDS": "25",
+                "DEVICE_CONTROL_VERIFY_DELAY_SECONDS": "0.4",
+                "DEVICE_CONTROL_VERIFY_ATTEMPTS": "5",
+            }
+        )
+
+        self.assertEqual(settings.planner_mode, "ollama")
+        self.assertEqual(settings.control_mode, "automatic")
+        self.assertEqual(settings.knowledge_url, "http://127.0.0.1:8011")
+        self.assertEqual(settings.knowledge_timeout_seconds, 95.0)
+        self.assertTrue(settings.general_knowledge_fallback)
+        self.assertEqual(settings.general_knowledge_timeout_seconds, 25.0)
+        self.assertEqual(settings.control_verify_delay_seconds, 0.4)
+        self.assertEqual(settings.control_verify_attempts, 5)
+
     async def test_relative_audit_path_is_resolved_from_project_root(self) -> None:
         settings = RuntimeSettings.from_mapping(
             {"DEVICE_AUDIT_PATH": "var/custom-audit.jsonl"}

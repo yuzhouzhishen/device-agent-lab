@@ -1,0 +1,21 @@
+{
+  "active_profile": "cp02s-lab-a",
+  "profiles": [
+    {
+      "id": "cp02s-lab-a",
+      "label": "CP02S 测试设备 A",
+      "backend": "xdp",
+      "device_id": "CP02S-LAB-A",
+      "allowed_ports": [1, 2, 3, 4, 5],
+      "xdp_mcp_url": "https://example.invalid/<psn>/<token>/mcp"
+    },
+    {
+      "id": "cp02s-lab-b",
+      "label": "CP02S 测试设备 B",
+      "backend": "xdp",
+      "device_id": "CP02S-LAB-B",
+      "allowed_ports": [1, 2, 3, 4, 5],
+      "xdp_mcp_url": "https://example.invalid/<psn>/<token>/mcp"
+    }
+  ]
+}

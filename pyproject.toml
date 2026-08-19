@@ -1,7 +1,7 @@
 [project]
 name = "device-agent-lab"
-version = "0.5.0"
-description = "A DeviceOps Agent with LangChain, LangGraph, MCP backends, retrieval, and human approval."
+version = "1.6.0"
+description = "A conversational DeviceOps Agent with LangGraph, MCP device backends, RAG, memory, and verified control."
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 dependencies = [
@@ -14,12 +14,12 @@ dependencies = [
     "langchain-google-genai>=2.0.0",
     "langchain-mcp-adapters>=0.1.0",
     "fastapi>=0.115.0",
+    "httpx>=0.28.0,<1.0.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
-    "httpx2>=2.9.0",
 ]
 
 [project.scripts]

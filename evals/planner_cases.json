@@ -381,5 +381,146 @@
       "need_confirmation": true,
       "valid": false
     }
+  },
+  {
+    "id": "chat-01",
+    "category": "chat",
+    "request": "你是谁",
+    "expected": {
+      "intent": "chat",
+      "action": "respond_chat",
+      "port": null,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "chat-02",
+    "category": "chat",
+    "request": "你能做什么",
+    "expected": {
+      "intent": "chat",
+      "action": "respond_chat",
+      "port": null,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "chat-03",
+    "category": "chat",
+    "request": "谢谢",
+    "expected": {
+      "intent": "chat",
+      "action": "respond_chat",
+      "port": null,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "knowledge-01",
+    "category": "knowledge",
+    "request": "PD 3.0 协议是什么",
+    "expected": {
+      "intent": "knowledge_query",
+      "action": "answer_knowledge",
+      "port": null,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "knowledge-02",
+    "category": "knowledge",
+    "request": "OTA 升级失败如何回滚",
+    "expected": {
+      "intent": "knowledge_query",
+      "action": "answer_knowledge",
+      "port": null,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "knowledge-03",
+    "category": "knowledge",
+    "request": "MQTT 断线重连机制是什么",
+    "expected": {
+      "intent": "knowledge_query",
+      "action": "answer_knowledge",
+      "port": null,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "scope-01",
+    "category": "unsupported",
+    "request": "今天天气怎么样",
+    "expected": {
+      "intent": "unsupported",
+      "action": "unsupported_request",
+      "port": null,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "scope-02",
+    "category": "unsupported",
+    "request": "给我推荐一道晚餐菜谱",
+    "expected": {
+      "intent": "unsupported",
+      "action": "unsupported_request",
+      "port": null,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "explain-01",
+    "category": "context",
+    "request": "刚才为什么这么判断",
+    "conversation": {
+      "recent_turns": [
+        {
+          "request": "诊断3号端口",
+          "summary": "3号端口存在 PD 能力不匹配。",
+          "action": "diagnose_port",
+          "port": 3,
+          "evidence": ["PD 请求能力不匹配"]
+        }
+      ]
+    },
+    "expected": {
+      "intent": "chat",
+      "action": "explain_previous",
+      "port": null,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
+  },
+  {
+    "id": "explain-02",
+    "category": "clarification",
+    "request": "解释一下刚才的结果",
+    "expected": {
+      "intent": "clarify",
+      "action": "ask_clarification",
+      "port": null,
+      "enabled": null,
+      "need_confirmation": false,
+      "valid": true
+    }
   }
 ]

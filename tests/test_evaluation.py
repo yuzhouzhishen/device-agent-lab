@@ -16,6 +16,7 @@ from device_agent_lab.planner import RuleBasedCommandPlanner
 class PlannerEvaluationTest(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
         self.dataset = Path("evals/planner_cases.json")
+        self.holdout = Path("evals/planner_holdout_v1.json")
         self.context = DeviceAgentContext(
             device_id="EVAL-DEVICE",
             online=True,
@@ -33,16 +34,22 @@ class PlannerEvaluationTest(unittest.IsolatedAsyncioTestCase):
             planner_name="rules",
         )
 
-        self.assertEqual(len(cases), 30)
-        self.assertEqual(report["passed_cases"], 30)
+        self.assertEqual(len(cases), 40)
+        self.assertEqual(report["passed_cases"], 40)
         self.assertEqual(report["exact_match_rate"], 1.0)
         self.assertEqual(
             report["categories"]["context"]["passed"],
-            5,
+            6,
         )
         self.assertEqual(
             report["categories"]["safety"]["passed"],
             4,
+        )
+        self.assertEqual(report["categories"]["chat"]["passed"], 3)
+        self.assertEqual(report["categories"]["knowledge"]["passed"], 3)
+        self.assertEqual(
+            report["categories"]["unsupported"]["passed"],
+            2,
         )
         self.assertEqual(report["failures"], [])
 
@@ -64,6 +71,21 @@ class PlannerEvaluationTest(unittest.IsolatedAsyncioTestCase):
                 '"exact_match_rate": 1.0',
                 output.read_text(encoding="utf-8"),
             )
+
+    def test_holdout_is_frozen_and_disjoint_from_regression_set(self) -> None:
+        regression = load_evaluation_cases(self.dataset)
+        holdout = load_evaluation_cases(self.holdout)
+
+        self.assertEqual(len(holdout), 18)
+        self.assertEqual(
+            {case.request for case in regression}
+            & {case.request for case in holdout},
+            set(),
+        )
+        self.assertEqual(
+            len({case.id for case in holdout}),
+            len(holdout),
+        )
 
 
 if __name__ == "__main__":

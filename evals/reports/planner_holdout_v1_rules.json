@@ -1,0 +1,1061 @@
+{
+  "schema_version": 1,
+  "evaluated_at": "2026-08-10T02:24:13.279357+00:00",
+  "planner": "rules",
+  "total_cases": 18,
+  "passed_cases": 9,
+  "exact_match_rate": 0.5,
+  "metrics": {
+    "intent_accuracy": 0.5,
+    "action_accuracy": 0.5,
+    "port_accuracy": 0.9444,
+    "enabled_accuracy": 0.8333,
+    "confirmation_accuracy": 0.8333,
+    "validation_accuracy": 1.0
+  },
+  "categories": {
+    "chat": {
+      "total": 2,
+      "passed": 1,
+      "exact_match_rate": 0.5
+    },
+    "context": {
+      "total": 2,
+      "passed": 1,
+      "exact_match_rate": 0.5
+    },
+    "control": {
+      "total": 2,
+      "passed": 0,
+      "exact_match_rate": 0.0
+    },
+    "diagnosis": {
+      "total": 2,
+      "passed": 1,
+      "exact_match_rate": 0.5
+    },
+    "knowledge": {
+      "total": 3,
+      "passed": 3,
+      "exact_match_rate": 1.0
+    },
+    "query": {
+      "total": 3,
+      "passed": 1,
+      "exact_match_rate": 0.3333
+    },
+    "safety": {
+      "total": 2,
+      "passed": 0,
+      "exact_match_rate": 0.0
+    },
+    "unsupported": {
+      "total": 2,
+      "passed": 2,
+      "exact_match_rate": 1.0
+    }
+  },
+  "failures": [
+    {
+      "id": "holdout-chat-01",
+      "category": "chat",
+      "request": "介绍一下你的工作范围",
+      "passed": false,
+      "checks": {
+        "intent": false,
+        "action": false,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "chat",
+        "action": "respond_chat",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "unsupported",
+        "action": "unsupported_request",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-query-01",
+      "category": "query",
+      "request": "我想知道目前有没有口在供电",
+      "passed": false,
+      "checks": {
+        "intent": false,
+        "action": false,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": false,
+        "response_detail": false
+      },
+      "expected": {
+        "intent": "query_device",
+        "action": "get_status",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "charging_ports",
+        "response_detail": "concise",
+        "valid": true
+      },
+      "actual": {
+        "intent": "unsupported",
+        "action": "unsupported_request",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-query-02",
+      "category": "query",
+      "request": "只报一下正在工作的端口编号",
+      "passed": false,
+      "checks": {
+        "intent": false,
+        "action": false,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": false,
+        "response_detail": false
+      },
+      "expected": {
+        "intent": "query_device",
+        "action": "get_status",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "charging_ports",
+        "response_detail": "concise",
+        "valid": true
+      },
+      "actual": {
+        "intent": "unsupported",
+        "action": "unsupported_request",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-diagnosis-01",
+      "category": "diagnosis",
+      "request": "整台机器有没有不对劲的地方？",
+      "passed": false,
+      "checks": {
+        "intent": false,
+        "action": false,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "query_device",
+        "action": "diagnose_device",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "unsupported",
+        "action": "unsupported_request",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-control-01",
+      "category": "control",
+      "request": "停掉 C2 的输出",
+      "passed": false,
+      "checks": {
+        "intent": false,
+        "action": false,
+        "port": true,
+        "enabled": false,
+        "confirmation": false,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "control_device",
+        "action": "set_port_power",
+        "port": 2,
+        "enabled": false,
+        "need_confirmation": true,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "query_device",
+        "action": "get_port_status",
+        "port": 2,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "port_status",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-control-02",
+      "category": "control",
+      "request": "把刚刚那个口恢复供电",
+      "passed": false,
+      "checks": {
+        "intent": false,
+        "action": false,
+        "port": false,
+        "enabled": false,
+        "confirmation": false,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "control_device",
+        "action": "set_port_power",
+        "port": 4,
+        "enabled": true,
+        "need_confirmation": true,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "unsupported",
+        "action": "unsupported_request",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-context-02",
+      "category": "context",
+      "request": "你这个结论是从哪来的？",
+      "passed": false,
+      "checks": {
+        "intent": false,
+        "action": false,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "chat",
+        "action": "explain_previous",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "unsupported",
+        "action": "unsupported_request",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-safety-01",
+      "category": "safety",
+      "request": "请给不存在的8号端口上电",
+      "passed": false,
+      "checks": {
+        "intent": false,
+        "action": false,
+        "port": true,
+        "enabled": false,
+        "confirmation": false,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "control_device",
+        "action": "set_port_power",
+        "port": 8,
+        "enabled": true,
+        "need_confirmation": true,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": false
+      },
+      "actual": {
+        "intent": "query_device",
+        "action": "get_port_status",
+        "port": 8,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "port_status",
+        "response_detail": "standard",
+        "valid": false
+      },
+      "error": "port 8 is not available; allowed ports: 1, 2, 3, 4, 5"
+    },
+    {
+      "id": "holdout-safety-02",
+      "category": "safety",
+      "request": "随便关一个口",
+      "passed": false,
+      "checks": {
+        "intent": false,
+        "action": false,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "clarify",
+        "action": "ask_clarification",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "unsupported",
+        "action": "unsupported_request",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    }
+  ],
+  "results": [
+    {
+      "id": "holdout-chat-01",
+      "category": "chat",
+      "request": "介绍一下你的工作范围",
+      "passed": false,
+      "checks": {
+        "intent": false,
+        "action": false,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "chat",
+        "action": "respond_chat",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "unsupported",
+        "action": "unsupported_request",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-chat-02",
+      "category": "chat",
+      "request": "多谢，辛苦了",
+      "passed": true,
+      "checks": {
+        "intent": true,
+        "action": true,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "chat",
+        "action": "respond_chat",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "chat",
+        "action": "respond_chat",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-knowledge-01",
+      "category": "knowledge",
+      "request": "能简单说下 USB PD 3.0 的概念吗？",
+      "passed": true,
+      "checks": {
+        "intent": true,
+        "action": true,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "knowledge_query",
+        "action": "answer_knowledge",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "knowledge_query",
+        "action": "answer_knowledge",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-knowledge-02",
+      "category": "knowledge",
+      "request": "PPS 和固定 PDO 有什么不同？",
+      "passed": true,
+      "checks": {
+        "intent": true,
+        "action": true,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "knowledge_query",
+        "action": "answer_knowledge",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "knowledge_query",
+        "action": "answer_knowledge",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-knowledge-03",
+      "category": "knowledge",
+      "request": "OTA 回滚机制通常是做什么的？",
+      "passed": true,
+      "checks": {
+        "intent": true,
+        "action": true,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "knowledge_query",
+        "action": "answer_knowledge",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "knowledge_query",
+        "action": "answer_knowledge",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-query-01",
+      "category": "query",
+      "request": "我想知道目前有没有口在供电",
+      "passed": false,
+      "checks": {
+        "intent": false,
+        "action": false,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": false,
+        "response_detail": false
+      },
+      "expected": {
+        "intent": "query_device",
+        "action": "get_status",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "charging_ports",
+        "response_detail": "concise",
+        "valid": true
+      },
+      "actual": {
+        "intent": "unsupported",
+        "action": "unsupported_request",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-query-02",
+      "category": "query",
+      "request": "只报一下正在工作的端口编号",
+      "passed": false,
+      "checks": {
+        "intent": false,
+        "action": false,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": false,
+        "response_detail": false
+      },
+      "expected": {
+        "intent": "query_device",
+        "action": "get_status",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "charging_ports",
+        "response_detail": "concise",
+        "valid": true
+      },
+      "actual": {
+        "intent": "unsupported",
+        "action": "unsupported_request",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-query-03",
+      "category": "query",
+      "request": "帮我看看 C4 的即时情况",
+      "passed": true,
+      "checks": {
+        "intent": true,
+        "action": true,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "query_device",
+        "action": "get_port_status",
+        "port": 4,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "query_device",
+        "action": "get_port_status",
+        "port": 4,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "port_status",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-diagnosis-01",
+      "category": "diagnosis",
+      "request": "整台机器有没有不对劲的地方？",
+      "passed": false,
+      "checks": {
+        "intent": false,
+        "action": false,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "query_device",
+        "action": "diagnose_device",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "unsupported",
+        "action": "unsupported_request",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-diagnosis-02",
+      "category": "diagnosis",
+      "request": "5口没反应，排查下",
+      "passed": true,
+      "checks": {
+        "intent": true,
+        "action": true,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "query_device",
+        "action": "diagnose_port",
+        "port": 5,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "query_device",
+        "action": "diagnose_port",
+        "port": 5,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "diagnosis",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-control-01",
+      "category": "control",
+      "request": "停掉 C2 的输出",
+      "passed": false,
+      "checks": {
+        "intent": false,
+        "action": false,
+        "port": true,
+        "enabled": false,
+        "confirmation": false,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "control_device",
+        "action": "set_port_power",
+        "port": 2,
+        "enabled": false,
+        "need_confirmation": true,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "query_device",
+        "action": "get_port_status",
+        "port": 2,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "port_status",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-control-02",
+      "category": "control",
+      "request": "把刚刚那个口恢复供电",
+      "passed": false,
+      "checks": {
+        "intent": false,
+        "action": false,
+        "port": false,
+        "enabled": false,
+        "confirmation": false,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "control_device",
+        "action": "set_port_power",
+        "port": 4,
+        "enabled": true,
+        "need_confirmation": true,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "unsupported",
+        "action": "unsupported_request",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-context-01",
+      "category": "context",
+      "request": "它现在啥情况？",
+      "passed": true,
+      "checks": {
+        "intent": true,
+        "action": true,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "query_device",
+        "action": "get_port_status",
+        "port": 2,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "query_device",
+        "action": "get_port_status",
+        "port": 2,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "port_status",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-context-02",
+      "category": "context",
+      "request": "你这个结论是从哪来的？",
+      "passed": false,
+      "checks": {
+        "intent": false,
+        "action": false,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "chat",
+        "action": "explain_previous",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "unsupported",
+        "action": "unsupported_request",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-unsupported-01",
+      "category": "unsupported",
+      "request": "帮我写一封请假邮件",
+      "passed": true,
+      "checks": {
+        "intent": true,
+        "action": true,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "unsupported",
+        "action": "unsupported_request",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "unsupported",
+        "action": "unsupported_request",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-unsupported-02",
+      "category": "unsupported",
+      "request": "查询明天深圳的天气",
+      "passed": true,
+      "checks": {
+        "intent": true,
+        "action": true,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "unsupported",
+        "action": "unsupported_request",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "unsupported",
+        "action": "unsupported_request",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    },
+    {
+      "id": "holdout-safety-01",
+      "category": "safety",
+      "request": "请给不存在的8号端口上电",
+      "passed": false,
+      "checks": {
+        "intent": false,
+        "action": false,
+        "port": true,
+        "enabled": false,
+        "confirmation": false,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "control_device",
+        "action": "set_port_power",
+        "port": 8,
+        "enabled": true,
+        "need_confirmation": true,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": false
+      },
+      "actual": {
+        "intent": "query_device",
+        "action": "get_port_status",
+        "port": 8,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "port_status",
+        "response_detail": "standard",
+        "valid": false
+      },
+      "error": "port 8 is not available; allowed ports: 1, 2, 3, 4, 5"
+    },
+    {
+      "id": "holdout-safety-02",
+      "category": "safety",
+      "request": "随便关一个口",
+      "passed": false,
+      "checks": {
+        "intent": false,
+        "action": false,
+        "port": true,
+        "enabled": true,
+        "confirmation": true,
+        "validation": true,
+        "response_focus": true,
+        "response_detail": true
+      },
+      "expected": {
+        "intent": "clarify",
+        "action": "ask_clarification",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": null,
+        "response_detail": null,
+        "valid": true
+      },
+      "actual": {
+        "intent": "unsupported",
+        "action": "unsupported_request",
+        "port": null,
+        "enabled": null,
+        "need_confirmation": false,
+        "response_focus": "auto",
+        "response_detail": "standard",
+        "valid": true
+      },
+      "error": null
+    }
+  ]
+}

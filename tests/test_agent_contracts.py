@@ -24,6 +24,8 @@ class AgentContractsTest(unittest.TestCase):
         self.assertIn("DEMO-CP02-001", prompt)
         self.assertIn("allowed_ports: 1, 2, 3", prompt)
         self.assertIn("必须输出结构化动作", prompt)
+        self.assertIn("respond_chat", prompt)
+        self.assertIn("answer_knowledge", prompt)
 
     def test_validates_control_command_against_context(self) -> None:
         context = DeviceAgentContext(
@@ -65,6 +67,24 @@ class AgentContractsTest(unittest.TestCase):
             validate_command_against_context(command, context)
 
         self.assertIn("port 9 is not available", str(error.exception))
+
+    def test_chat_remains_available_when_device_is_offline(self) -> None:
+        context = DeviceAgentContext(
+            device_id="DEMO-CP02-001",
+            online=False,
+            allowed_ports=[1, 2, 3],
+            operator_role="实习调试员",
+        )
+        command = DeviceCommand(
+            intent="chat",
+            action="respond_chat",
+            device_id="DEMO-CP02-001",
+            need_confirmation=False,
+            reason="回答身份问题。",
+            reply="我是 DeviceOps。",
+        )
+
+        validate_command_against_context(command, context)
 
 
 if __name__ == "__main__":

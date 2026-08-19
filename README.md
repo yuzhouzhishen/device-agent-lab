@@ -1,280 +1,261 @@
 # DeviceOps Agent
 
-把"2 号端口为什么充不了电"这类自然语言请求，转换成**可校验、可确认、可审计**的
-真实设备操作。
+面向智能充电设备运维的 AI Agent。它把自然语言请求转换为结构化设备命令，
+通过 LangGraph 编排查询、诊断与控制，并接入公司已有 XDP MCP 服务操作经授权
+测试设备。诊断链路还会调用独立的 Firmware Knowledge Agent，用实时遥测和业务
+文档共同生成结论。
 
-面向智能充电设备运维场景：设备侧能力通过 MCP 暴露，Agent 负责理解意图、
-采集证据、给出结论；所有会改变设备状态的操作都必须经过人工确认。
+当前冻结版本：`1.6.0`。
 
-已完成一次授权真实设备（CP-02S，5 端口 / 160 W）的端到端联调，包含只读查询、
-四类证据诊断和真实控制调用。
+## 当前能力
 
----
-
-## 30 秒速览
-
-| 维度 | 现状 |
+| 层次 | 实现 |
 | --- | --- |
-| 规划层 | Gemini Planner + 离线规则 Planner，输出结构化 `DeviceCommand` |
-| 编排层 | LangGraph 异步工作流，查询 / 诊断 / 控制 / 澄清四条分支 |
-| 设备层 | `DeviceGateway` Adapter：Mock、本地 MCP、远程 XDP MCP 三种后端可切换 |
-| 安全 | 控制操作强制 `interrupt` 人工确认；敏感字段白名单；JSONL 审计 |
-| 入口 | CLI、FastAPI、Web 运维对话控制台 |
-| 测试 | 72 项自动化测试通过 |
-| 评测 | 30 条人工标注 Planner Eval，规则 Planner 基线 `30/30` |
-| 真机验证 | 2026-08-03 完成，记录见 [`docs/REAL_XDP_VALIDATION.md`](docs/REAL_XDP_VALIDATION.md) |
+| 意图规划 | 明确问候/身份/能力走规则快速路径；其余由 Ollama `llama3.1:8b` 输出 JSON Schema；模型后确定性归一化与规则降级 |
+| 动作协议 | Pydantic `DeviceCommand` 统一约束聊天、知识、设备、澄清、范围外请求和控制标记 |
+| 工作流 | LangGraph 编排业务对话、直接 RAG、上下文解释、范围控制、设备查询/诊断/控制 |
+| 设备接入 | `DeviceGateway` 适配 Mock、本地 MCP、远程 XDP MCP |
+| 设备切换 | 私有授权配置、连接前只读验证、原子替换、失败回滚、按设备隔离会话 |
+| 知识增强 | 严格 RAG 优先；公开通用概念无证据时可使用带来源标签的 Ollama 降级；具体设备事实仍拒答 |
+| 会话 | SQLite 保存脱敏摘要、证据和来源，支持端口指代、“为什么？”及上一条结果解释 |
+| 控制验证 | 操作前读状态，执行后轮询复查，区分 verified、already_satisfied、mismatch、unobservable |
+| 工程入口 | FastAPI、SSE 流式事件、响应式 Web 运维控制台、CLI、Swagger |
+| 交互建议 | 首屏仅显示通用入口；完成回答后按本轮命令、端口和结果生成可执行追问 |
+| 可观测性 | 节点 Trace、逐步耗时、模型 token、JSONL 审计、知识引用 |
+| 部署 | Docker Compose；已在 macOS OrbStack 验证 |
+| 测试 | `147 passed` |
+
+## 架构
 
 ```mermaid
 flowchart LR
-    U["CLI / HTTP / Web Console"] --> P["Planner"]
-    P --> C["DeviceCommand<br/>(Pydantic 校验)"]
-    C --> G["LangGraph 工作流"]
-    G --> K["本地故障知识检索"]
-    G --> H{"控制操作?"}
-    H -->|查询| D["DeviceGateway"]
-    H -->|诊断| E["四类证据采集"]
-    E --> D
-    H -->|是| B["操作前读取状态"]
-    B --> I["interrupt 人工确认"]
-    I --> D
-    D --> V["操作后复查<br/>verified / already_satisfied / unobservable"]
-    D --> M["Mock"]
-    D --> L["本地 MCP"]
-    D --> X["远程 XDP MCP"]
-    G --> A["JSONL 审计"]
+    U["Web / API / CLI"] --> S["DeviceOpsService"]
+    S --> P["Ollama Planner"]
+    S --> F["聊天快速路径"]
+    P --> C["结构化业务决策"]
+    P -. "失败降级" .-> R["Rule Planner"]
+    C --> G["LangGraph"]
+    G --> H["业务对话 / 澄清 / 范围控制"]
+    G --> X["DeviceGateway"]
+    X --> M["XDP MCP"]
+    M --> D["授权测试设备"]
+    G --> K["Firmware Knowledge Agent"]
+    K -. "公开概念无证据" .-> L["Ollama 通用知识"]
+    G --> A["SQLite 会话 / JSONL 审计"]
+    G --> O["摘要、证据、引用、Trace"]
 ```
 
----
-
-## 关键设计决策
-
-这一节记录做了什么取舍，以及为什么。
-
-### 1. LLM 不直接调设备，中间隔一层结构化命令
-
-Planner 的输出是 `DeviceCommand`，不是自由文本或直接的工具调用。命令经过
-Pydantic 校验和 `DeviceAgentContext` 上下文校验（端口是否在允许列表、动作是否
-需要确认）后才进入工作流。
-
-这样做的代价是 Planner 表达能力受限，收益是**非法命令在到达设备前就被拒绝**，
-且校验逻辑可以脱离模型单独测试。30 条 Planner Eval 中有 4 条专门验证越权端口
-被上下文校验拦截。
-
-### 2. 控制操作必须经过 interrupt，前端无法绕过
-
-真实设备操作不可回滚，而 LLM 的意图识别一定会出错。控制类命令在 LangGraph 中
-执行到 `interrupt()` 就暂停，返回 `confirmation_required`；调用方必须发起一次
-**独立的 resume 请求**并携带 `approved` 才会继续。
-
-确认逻辑在后端图里，不在前端。Web Console 无法通过构造请求跳过确认直接控制设备。
-
-### 3. 区分"命令成功"和"状态已改变"
-
-控制链路是 `prepare_control -> interrupt -> control -> verify_control`：操作前
-先读状态，操作后再读一次复查。复查结果分三种：
-
-- `verified` — 状态确实变了
-- `already_satisfied` — 操作前就已经是目标状态
-- `unobservable` — 命令成功返回，但现有遥测无法确认
-
-真机验证时，2 号端口在无负载情况下执行开启命令，MCP 返回 `ports [2] turned on`，
-但端口详情仍是 `disconnected / 0 W`。项目把这个结果如实标为 `unobservable`，
-**没有写成验证通过**。操作前状态读取失败时直接阻止命令下发。
-
-### 4. 设备数据进入领域模型前走字段白名单
-
-真实设备返回的信息包含 PSN、SSID、BSSID、MAC 等标识。这些字段在进入 Agent 领域
-模型前被白名单过滤，不出现在 API 响应和审计日志中。PD 诊断同样只保留白名单
-字段，不保存原始 VID / PID / XID。
-
-只读探针 `device-agent-xdp-probe` 额外限制为固定的五个只读工具，无法调用任何
-控制工具。
-
-### 5. 诊断采集多类证据，并允许部分失败
-
-单看端口状态不足以判断"为什么充不了电"。诊断分支依次采集四类证据：
+### 业务对话与路由
 
 ```text
-collect_port_status -> collect_charging_status
--> collect_pd_status -> collect_temperature_mode -> analyze_diagnosis
+validate
+├── respond_chat -> summarize
+├── answer_knowledge -> summarize
+├── explain_previous -> summarize
+├── unsupported -> summarize
+└── clarify -> summarize
 ```
 
-任一工具失败时保留其余证据并输出降级结论，而不是整个请求失败。
+“你是谁”“你能做什么”等明确请求由规则快速返回，不调用 Planner 模型或设备；
+固件和协议问题先调用严格 RAG。RAG 无证据时，只有公开通用概念可以降级到
+Ollama，并明确标记“未经知识库验证”；具体设备、公司实现和支持能力继续拒答。
+PPS 等有跨领域歧义的缩写会先限定到 USB PD 语境，模型答案仍需通过领域校验。
+“为什么？”根据 SQLite 中上一条脱敏摘要、证据和来源解释；无关请求返回能力
+边界。澄清是正常业务状态，不再显示为设备操作失败。
 
-### 6. 三种设备后端共用一套接口
+Web 控制台会在对话中显示当前工作流阶段和耗时，支持停止长请求；设备切换和
+手动刷新直接读取脱敏状态快照，不经过 Planner。Trace、知识来源和验证状态在
+所有窗口中按需通过执行证据抽屉查看，查询结果同步刷新左侧端口遥测。
 
-`DeviceGateway` 把 Mock、本地 MCP Server、远程 XDP MCP 抽象为同一接口。开发和
-测试完全离线进行，只在需要时切到真机。这也让 72 项测试不依赖任何外部服务。
+### 查询
 
----
+```text
+validate -> query -> summarize
+```
 
-## 快速开始
+### 端口或整机诊断
 
-Python 3.13（限制 `<3.14`）：
+```text
+validate
+-> collect_device_status / collect_port_status
+-> collect_charging_status
+-> collect_pd_status
+-> collect_temperature_mode
+-> analyze_diagnosis
+-> retrieve_knowledge
+-> summarize
+```
+
+设备事实先采集，RAG 后增强。知识服务不可用时不会伪造成功，也不会丢弃已经取得
+的真实遥测，而是在结果中返回降级警告。
+
+### 控制
+
+```text
+validate -> prepare_control -> control -> verify_control -> summarize
+```
+
+系统支持两种策略：
+
+- `approval`：LangGraph 在 `interrupt()` 暂停，必须通过 resume 批准。
+- `automatic`：仅用于本人明确授权的测试设备，后端自动恢复同一工作流。
+
+两种模式都执行端口白名单、操作前读取、操作后轮询验证和审计。自动模式不是跳过
+后端校验，只是免去人工批准这一环。
+
+## 快速运行
+
+要求 Python 3.13、Ollama，以及已下载的本地模型：
 
 ```bash
-UV_CACHE_DIR=.uv-cache UV_PYTHON_INSTALL_DIR=.uv-python uv venv --python 3.13 .venv
-source .venv/bin/activate
-UV_CACHE_DIR=.uv-cache uv pip install -e ".[dev]"
+ollama pull llama3.1:8b
 ```
 
-完全离线跑一次诊断（不需要任何 API Key）：
+安装：
 
 ```bash
-device-agent --planner rules --backend mock "2号端口为什么无法充电？"
+UV_CACHE_DIR=.uv-cache uv sync --extra dev
 ```
 
-控制请求会暂停等待终端确认：
+离线 Mock：
 
 ```bash
-device-agent --planner rules --backend mock "打开2号端口"
+DEVICE_BACKEND=mock \
+DEVICE_PLANNER=rules \
+DEVICE_CONTROL_MODE=approval \
+  .venv/bin/uvicorn device_agent_lab.api:app --host 127.0.0.1 --port 8000
 ```
 
-启动 Web Console 和 HTTP API：
+当前本机真实演示配置保存在被 Git 忽略的 `.env`，其中包含：
 
-```bash
-DEVICE_BACKEND=mock DEVICE_PLANNER=rules \
-  uvicorn device_agent_lab.api:app --host 127.0.0.1 --port 8000
+```dotenv
+DEVICE_BACKEND=xdp
+DEVICE_PLANNER=ollama
+DEVICE_PLANNER_FALLBACK=true
+GENERAL_KNOWLEDGE_FALLBACK=true
+DEVICE_CONTROL_MODE=automatic
+FIRMWARE_RAG_URL=http://127.0.0.1:8011
 ```
 
-- 运维对话控制台：`http://127.0.0.1:8000/`
+`XDP_MCP_URL` 可能包含设备凭证，只能留在 `.env`，不得写入源码、截图、简历或
+提交记录。
+
+多设备演示时，将 `device_profiles.example.json` 复制到被 Git 忽略的
+`var/device-profiles.json`，再替换为每台已授权设备的完整 MCP URL。本地
+Python 运行时使用：
+
+```dotenv
+DEVICE_PROFILES_FILE=var/device-profiles.json
+DEVICE_PROFILE_STATE=var/active-device-profile
+```
+
+Docker 中 `var/` 挂载在 `/data`，因此使用：
+
+```dotenv
+DEVICE_PROFILES_FILE=/data/device-profiles.json
+```
+
+前端只会获得配置 ID、别名、后端类型和端口范围，不会获得
+`device_id`、PSN、TOKEN 或 MCP URL。切换时等待当前请求结束，新连接
+通过只读状态查询后才替换旧连接；任何失败都保留原设备。
+
+入口：
+
+- 控制台：`http://127.0.0.1:8000/`
 - Swagger：`http://127.0.0.1:8000/docs`
+- 健康检查：`http://127.0.0.1:8000/health`
+- 授权设备列表：`GET http://127.0.0.1:8000/v1/devices`
+- 当前设备快照：`GET http://127.0.0.1:8000/v1/devices/current/status`
 
-查询接口：
+## API 示例
 
 ```bash
 curl -X POST http://127.0.0.1:8000/v1/requests \
   -H 'Content-Type: application/json' \
-  -d '{"request":"查询1号端口状态","conversation_id":"demo-chat"}'
+  -d '{"request":"诊断设备整体状态并结合文档给出建议","conversation_id":"demo"}'
 ```
 
-控制请求先返回 `confirmation_required`，确认后恢复同一线程：
+SSE 流式入口：
 
 ```bash
-curl -X POST http://127.0.0.1:8000/v1/requests/demo-control/resume \
+curl -N -X POST http://127.0.0.1:8000/v1/requests/stream \
   -H 'Content-Type: application/json' \
-  -d '{"approved":true}'
+  -d '{"request":"3号端口为什么充电异常","conversation_id":"demo"}'
 ```
 
-`conversation_id` 负责跨轮次的短期语境，`thread_id` 只负责一次 LangGraph 执行
-及其暂停恢复，两者职责独立。
+`conversation_id` 标识多轮会话；`thread_id` 标识一次 LangGraph 执行及其
+interrupt/resume 生命周期。
 
----
+## macOS OrbStack 部署
 
-## 会话上下文
-
-会话保存最近六轮脱敏摘要，支持指代消解。真机验证片段：
-
-```text
-用户：现在几号端口在充电
-助手：当前 2 号端口正在充电，并返回实时功率、电压、电流和协议。
-用户：所以是几号
-助手：再次查询并明确回答 2 号端口。
-用户：把它关掉
-系统：解析为 set_port_power(port=2, enabled=false)，停在确认阶段。
-```
-
-结构化命令同时表达**回答焦点**和**详细程度**：Planner 负责理解复杂表达，业务
-代码强制执行"几号、哪些、只回答、不要多余内容"等显式要求。真机验证中
-"现在几号端口在充电"只返回端口号，而"查询设备整体状态，给我完整参数"保留
-完整遥测输出。
-
----
-
-## 评测
-
-本地评测器只验证自然语言到 `DeviceCommand` 的规划结果和上下文安全校验，
-**不连接 MCP、不操作设备**：
+统一编排文件位于 `deploy/compose.yaml`，同时启动 DeviceOps 和 Firmware
+Knowledge Agent。先启动 OrbStack 与 Ollama，再执行：
 
 ```bash
-device-agent-eval \
-  --dataset evals/planner_cases.json \
-  --output evals/reports/planner_rules.json
+docker compose -f deploy/compose.yaml build
+docker compose -f deploy/compose.yaml up -d
+docker compose -f deploy/compose.yaml ps
 ```
 
-30 条人工标注样本覆盖六类场景：
+容器通过 `host.docker.internal` 调用宿主机 Ollama。详细步骤和故障排查见
+[`docs/MACOS_ORBSTACK_DEPLOYMENT.md`](docs/MACOS_ORBSTACK_DEPLOYMENT.md)。
 
-| 类别 | 数量 | 检查内容 |
-| --- | ---: | --- |
-| query | 7 | 整体状态与指定端口查询 |
-| diagnosis | 5 | 端口故障诊断路由 |
-| control | 6 | 开关动作、端口和确认标记 |
-| clarification | 3 | 信息不足时请求补充端口 |
-| context | 5 | "它、这个端口、刚才那个"等指代 |
-| safety | 4 | 越权端口被上下文校验拒绝 |
+## 验证结果
 
-规则 Planner 基线 `30/30`，Exact Match `100%`。
+- 147 项自动化测试通过。
+- 40 条人工标注 Planner Eval 覆盖聊天、知识、范围外请求、上下文、查询、诊断、
+  控制、澄清和安全；规则基线 `40/40`。
+- 本地 `llama3.1:8b` 使用同一数据集完成真实结构化路由评测，结果见
+  `evals/reports/planner_ollama.json`。该结果只代表这组固定样本，不代表开放
+  自然语言泛化准确率。
+- 另行冻结 18 条未参与实现调试的口语化留出集，首次结果为 Rules `9/18`、
+  Ollama `11/18`。失败被保留且未据此调参，用于说明规则兜底与 8B 本地模型的
+  泛化边界。
+- 授权真机已完成整机查询、端口查询、四类证据诊断、RAG 联动、关闭端口、
+  操作后验证、重新开启并恢复充电。
+- 本地 Python 链路与 OrbStack 容器链路均完成
+  `DeviceOps -> RAG -> Ollama -> XDP MCP -> 真实设备` 验证。
+- 桌面和 390 px 移动视口通过浏览器 QA，无横向溢出或控件遮挡。
 
-> 这个数字只表示当前实现与这 30 条范围内样本完全一致，**不代表**对任意自然
-> 语言输入的泛化准确率，也不代表 MCP 调用或诊断结论质量为 100%。口径说明见
-> [`evals/README.md`](evals/README.md)。
-
----
-
-## 真机接入
-
-远程 MCP URL 可能包含设备凭证，只保存在 `.env`，不进源码、README、提交记录
-或命令行历史：
-
-```dotenv
-DEVICE_BACKEND=xdp
-DEVICE_PLANNER=gemini
-DEVICE_ID=PRIVATE-DEVICE
-DEVICE_ALLOWED_PORTS=1,2,3,4,5
-XDP_MCP_URL=https://your-private-mcp-endpoint/.../mcp
-```
-
-第一次接入先运行只读探测：
-
-```bash
-device-agent-xdp-probe
-```
-
-输出默认脱敏 PSN、Wi-Fi 标识、MAC、URL 和 Token。
-
-真机验证的完整范围、安全边界和**尚未完成的部分**见
+真实验证边界见
 [`docs/REAL_XDP_VALIDATION.md`](docs/REAL_XDP_VALIDATION.md)。
 
----
-
-## 验证
+## 测试
 
 ```bash
-python -m pytest -q          # 72 passed
-python -m compileall -q src examples tests
+.venv/bin/pytest -q
+.venv/bin/python -m compileall -q src tests
+node --check src/device_agent_lab/web/app.js
 ```
-
----
 
 ## 目录
 
 ```text
 src/device_agent_lab/
-  device_ops_service.py  # 应用接口：start / resume
-  ops_workflow.py        # 异步 LangGraph 工作流（核心）
-  planner.py             # Gemini 与离线规则规划器
-  device_gateway.py      # Mock / 本地 MCP / XDP 三种后端 Adapter
-  agent_contracts.py     # DeviceCommand 协议与上下文校验
-  knowledge_base.py      # 本地故障知识检索
-  audit.py               # JSONL 审计
-  runtime.py             # 环境配置与模块组装
-  cli.py / api.py        # 终端与 HTTP 入口
-  web/                   # 运维对话控制台
-  mcp_server.py          # 独立运行的本地 MCP Server
-  xdp_probe.py           # 只读探针（工具白名单）
-evals/                   # Planner 评测数据集与报告
-examples/                # 概念拆解 Demo，见 docs/LEARNING_PATH.md
-tests/                   # 72 项测试
+  agent_contracts.py      # 统一业务决策、设备命令与会话协议
+  planner.py              # Ollama / Gemini / Rule Planner 与降级
+  ops_workflow.py         # LangGraph 核心工作流
+  device_gateway.py       # Mock / Local MCP / XDP Adapter
+  knowledge_gateway.py    # 严格 RAG 接口与受限通用知识降级
+  device_ops_service.py   # start / resume / stream 应用接口
+  conversation_store.py   # SQLite 多轮上下文
+  metrics.py              # 规划、工作流、节点与 token 指标
+  audit.py                # 脱敏 JSONL 审计
+  runtime.py              # 环境配置与依赖组装
+  api.py                  # FastAPI
+  web/                    # 运维控制台
+deploy/compose.yaml       # 双项目 OrbStack 编排
+evals/                    # Planner Eval
+tests/                    # 自动化测试
 ```
 
-依赖版本：`langchain==1.3.14`、`langgraph==1.2.10`、
-`langchain-mcp-adapters==0.3.1`、`mcp==1.29.0`、`fastapi==0.141.1`。
+## 项目边界
 
----
+- 公司已有：XDP MCP Server、设备工具和底层设备协议。
+- 本项目实现：Agent 应用层、统一命令协议、LangGraph 工作流、MCP Adapter、
+  RAG 联动、会话、控制验证、审计、评测、FastAPI、Web UI 和 Docker 编排。
+- 当前是经授权的单设备作品集系统，不声称具备多租户权限、生产级高可用或任意
+  设备兼容性。
 
-## 相关文档
-
-- [`docs/REAL_XDP_VALIDATION.md`](docs/REAL_XDP_VALIDATION.md) — 真机验证记录与安全边界
-- [`docs/PROJECT_WALKTHROUGH.md`](docs/PROJECT_WALKTHROUGH.md) — 分层学习任务
-- [`docs/LEARNING_PATH.md`](docs/LEARNING_PATH.md) — `examples/01-07` 概念拆解
-- [`evals/README.md`](evals/README.md) — 评测设计与基线边界
+学习顺序见
+[`docs/PROJECT_WALKTHROUGH.md`](docs/PROJECT_WALKTHROUGH.md)。

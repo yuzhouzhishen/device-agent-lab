@@ -18,12 +18,15 @@ from device_agent_lab.agent_contracts import (
 )
 from device_agent_lab.planner import (
     CommandPlanner,
+    FastPathCommandPlanner,
     GeminiCommandPlanner,
+    OllamaCommandPlanner,
     RuleBasedCommandPlanner,
 )
 
 
 class ExpectedCommand(BaseModel):
+    intent: str | None = None
     action: str
     port: int | None
     enabled: bool | None
@@ -63,11 +66,13 @@ async def evaluate_planner(
     results: list[dict[str, Any]] = []
     for case in cases:
         try:
-            command = await planner.plan(
-                case.request,
-                context,
-                case.conversation,
-            )
+            command = (
+                await planner.plan(
+                    case.request,
+                    context,
+                    case.conversation,
+                )
+            ).command
             try:
                 validate_command_against_context(command, context)
                 actual_valid = True
@@ -77,6 +82,10 @@ async def evaluate_planner(
                 validation_error = str(exc)
 
             checks = {
+                "intent": (
+                    case.expected.intent is None
+                    or command.intent == case.expected.intent
+                ),
                 "action": command.action == case.expected.action,
                 "port": command.port == case.expected.port,
                 "enabled": command.enabled == case.expected.enabled,
@@ -103,6 +112,7 @@ async def evaluate_planner(
                     "checks": checks,
                     "expected": case.expected.model_dump(),
                     "actual": {
+                        "intent": command.intent,
                         "action": command.action,
                         "port": command.port,
                         "enabled": command.enabled,
@@ -122,6 +132,7 @@ async def evaluate_planner(
                     "request": case.request,
                     "passed": False,
                     "checks": {
+                        "intent": False,
                         "action": False,
                         "port": False,
                         "enabled": False,
@@ -157,6 +168,7 @@ def _build_report(
     total = len(results)
     passed = sum(1 for result in results if result["passed"])
     metric_names = (
+        "intent",
         "action",
         "port",
         "enabled",
@@ -241,7 +253,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--planner",
-        choices=("rules", "gemini"),
+        choices=("rules", "gemini", "ollama"),
         default="rules",
     )
     return parser
@@ -261,23 +273,40 @@ async def _run(args: argparse.Namespace) -> int:
             raise ValueError(
                 "GEMINI_API_KEY is required for --planner gemini"
             )
-        planner: CommandPlanner = GeminiCommandPlanner(
-            api_key=api_key,
-            model_name=os.getenv(
-                "GEMINI_MODEL",
-                "gemini-2.5-flash",
-            ),
+        planner: CommandPlanner = FastPathCommandPlanner(
+            GeminiCommandPlanner(
+                api_key=api_key,
+                model_name=os.getenv(
+                    "GEMINI_MODEL",
+                    "gemini-2.5-flash",
+                ),
+            )
+        )
+    elif args.planner == "ollama":
+        planner = FastPathCommandPlanner(
+            OllamaCommandPlanner(
+                model_name=os.getenv("OLLAMA_MODEL", "llama3.1:8b"),
+                base_url=os.getenv(
+                    "OLLAMA_BASE_URL",
+                    "http://127.0.0.1:11434",
+                ),
+            )
         )
     else:
         planner = RuleBasedCommandPlanner()
 
-    cases = load_evaluation_cases(args.dataset)
-    report = await evaluate_planner(
-        planner,
-        context,
-        cases,
-        planner_name=args.planner,
-    )
+    try:
+        cases = load_evaluation_cases(args.dataset)
+        report = await evaluate_planner(
+            planner,
+            context,
+            cases,
+            planner_name=args.planner,
+        )
+    finally:
+        close = getattr(planner, "aclose", None)
+        if close is not None:
+            await close()
     write_evaluation_report(report, args.output)
     print(
         f"{args.planner} planner: "

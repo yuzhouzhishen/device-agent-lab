@@ -1,0 +1,73 @@
+name: device-agent-stack
+
+services:
+  firmware-rag:
+    build:
+      context: ../../firmware-knowledge-agent
+    environment:
+      FIRMWARE_RAG_CATALOG: /data/private-corpus/sources.json
+      FIRMWARE_RAG_RETRIEVER: vector
+      FIRMWARE_RAG_EMBEDDING_PROVIDER: ollama
+      FIRMWARE_RAG_EMBEDDING_MODEL: qwen3-embedding:0.6b
+      FIRMWARE_RAG_EMBEDDING_CACHE: /data/embedding-cache/embeddings.json
+      FIRMWARE_RAG_VECTOR_STORE: /data/vector-store
+      FIRMWARE_RAG_VECTOR_COLLECTION: firmware_knowledge
+      FIRMWARE_RAG_RERANKER: none
+      FIRMWARE_RAG_CHUNK_SIZE: "1000"
+      FIRMWARE_RAG_CHUNK_OVERLAP: "150"
+      FIRMWARE_RAG_VECTOR_MIN_SCORE: "0.55"
+      FIRMWARE_RAG_GENERATOR: ollama
+      FIRMWARE_RAG_OLLAMA_URL: http://host.docker.internal:11434
+      FIRMWARE_RAG_OLLAMA_MODEL: llama3.1:8b
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - "${FIRMWARE_RAG_HOST_PORT:-8011}:8011"
+    volumes:
+      - ../../firmware-knowledge-agent/var/private-corpus:/data/private-corpus
+      - rag-vector-store:/data/vector-store
+      - rag-embedding-cache:/data/embedding-cache
+    command:
+      - uvicorn
+      - firmware_knowledge_agent.api:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8011"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8011/health', timeout=3)"
+      interval: 10s
+      timeout: 5s
+      start_period: 90s
+      retries: 12
+    restart: unless-stopped
+
+  deviceops:
+    build:
+      context: ..
+    env_file:
+      - ../.env
+    environment:
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      FIRMWARE_RAG_URL: http://firmware-rag:8011
+      DEVICE_AUDIT_PATH: /data/audit.jsonl
+      DEVICE_SESSION_DB: /data/sessions.sqlite3
+      DEVICE_PROFILE_STATE: /data/active-device-profile
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - "${DEVICEOPS_HOST_PORT:-8000}:8000"
+    volumes:
+      - ../var:/data
+    depends_on:
+      firmware-rag:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  rag-vector-store:
+  rag-embedding-cache:

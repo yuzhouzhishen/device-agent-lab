@@ -22,20 +22,33 @@ class AuditRecord(BaseModel):
     knowledge_ids: list[str] = Field(default_factory=list)
 
 
+class DeviceSwitchAuditRecord(BaseModel):
+    timestamp: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+    event_type: Literal["device_switch"] = "device_switch"
+    from_profile: str
+    to_profile: str
+    status: Literal["completed", "failed"]
+
+
+AuditEntry = AuditRecord | DeviceSwitchAuditRecord
+
+
 class AuditLog(Protocol):
-    def append(self, record: AuditRecord) -> None: ...
+    def append(self, record: AuditEntry) -> None: ...
 
 
 class NullAuditLog:
-    def append(self, record: AuditRecord) -> None:
+    def append(self, record: AuditEntry) -> None:
         del record
 
 
 class InMemoryAuditLog:
     def __init__(self) -> None:
-        self.records: list[AuditRecord] = []
+        self.records: list[AuditEntry] = []
 
-    def append(self, record: AuditRecord) -> None:
+    def append(self, record: AuditEntry) -> None:
         self.records.append(record)
 
 
@@ -45,7 +58,7 @@ class JsonlAuditLog:
     def __init__(self, path: Path) -> None:
         self._path = path
 
-    def append(self, record: AuditRecord) -> None:
+    def append(self, record: AuditEntry) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)
         with self._path.open("a", encoding="utf-8") as handle:
             handle.write(record.model_dump_json())

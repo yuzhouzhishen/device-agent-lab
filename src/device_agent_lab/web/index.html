@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
     <title>DeviceOps Console</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/styles.css?v=1.6.0">
   </head>
   <body>
     <a class="skip-link" href="#request-input">跳到请求输入</a>
@@ -15,7 +15,7 @@
         <div class="brand-mark" aria-hidden="true">
           <span></span><span></span><span></span><span></span><span></span>
         </div>
-        <div>
+        <div class="brand-copy">
           <strong>DeviceOps</strong>
           <span>CONTROL CONSOLE</span>
         </div>
@@ -28,6 +28,10 @@
         <span id="backend-label">BACKEND</span>
         <span class="runtime-separator"></span>
         <span id="planner-label">PLANNER</span>
+        <span class="runtime-separator"></span>
+        <span id="knowledge-label">RAG</span>
+        <span class="runtime-separator"></span>
+        <span id="control-label">CONTROL</span>
       </div>
 
       <a class="docs-link" href="/docs" target="_blank" rel="noreferrer">
@@ -44,21 +48,18 @@
       <aside class="device-panel" aria-label="设备状态">
         <div class="panel-heading">
           <span>设备</span>
-          <strong>CP-02S LAB</strong>
+          <strong id="device-panel-label">连接中</strong>
         </div>
 
         <div class="device-visual" aria-label="五端口设备示意">
           <div class="device-topline">
-            <span>160W</span>
-            <span class="device-led"></span>
+            <div>
+              <strong id="device-power-budget">-- W</strong>
+              <span id="device-model-label">正在读取设备</span>
+            </div>
+            <span class="device-led" id="device-led"></span>
           </div>
-          <div class="device-ports" id="device-ports">
-            <span data-visual-port="1">C1</span>
-            <span data-visual-port="2">C2</span>
-            <span data-visual-port="3">C3</span>
-            <span data-visual-port="4">C4</span>
-            <span data-visual-port="5">A1</span>
-          </div>
+          <div class="device-ports" id="device-ports"></div>
         </div>
 
         <div class="panel-section-title">
@@ -75,18 +76,40 @@
         <div class="port-list" id="port-list"></div>
 
         <div class="device-footer">
-          <span>目标设备</span>
-          <strong>CP02S-LAB-01</strong>
+          <span>最近更新</span>
+          <strong id="device-last-updated">等待状态</strong>
         </div>
       </aside>
 
       <section class="conversation" aria-labelledby="conversation-title">
         <header class="conversation-header">
-          <div>
+          <div class="conversation-title-group">
             <span class="section-kicker">AGENT SESSION</span>
-            <h1 id="conversation-title">设备运维会话</h1>
+            <div class="conversation-title-line">
+              <h1 id="conversation-title">设备运维会话</h1>
+              <label class="device-selector" for="device-profile-select">
+                <span class="sr-only">当前设备</span>
+                <select id="device-profile-select" aria-label="当前设备"
+                        disabled>
+                  <option value="">连接中</option>
+                </select>
+              </label>
+              <span class="device-context" id="device-context">
+                等待设备状态
+              </span>
+            </div>
           </div>
-          <span class="session-indicator" id="session-indicator">就绪</span>
+          <div class="conversation-actions">
+            <span class="session-indicator" id="session-indicator"
+                  role="status" aria-live="polite">就绪</span>
+            <button class="header-action-button" id="new-session" type="button"
+                    title="开始新的会话">新会话</button>
+            <button class="header-action-button inspector-toggle"
+                    id="toggle-inspector" type="button"
+                    aria-controls="execution-panel" aria-expanded="false">
+              <span id="inspector-toggle-label">执行证据</span>
+            </button>
+          </div>
         </header>
 
         <div class="messages" id="messages" role="log" aria-live="polite">
@@ -101,7 +124,7 @@
                 <strong>DeviceOps</strong>
                 <span>当前</span>
               </div>
-              <p>设备连接准备就绪。</p>
+              <p id="welcome-message">正在读取当前设备状态。</p>
             </div>
           </article>
         </div>
@@ -134,18 +157,16 @@
           </div>
         </section>
 
-        <div class="quick-actions" aria-label="快捷请求">
-          <button type="button" data-request="查询设备整体状态">整体状态</button>
-          <button type="button" data-request="查询2号端口状态">2 号端口</button>
-          <button type="button" data-request="2号端口为什么无法充电">诊断 2 号端口</button>
-          <button type="button" data-request="打开2号端口">打开 2 号端口</button>
-          <button type="button" data-request="关闭2号端口">关闭 2 号端口</button>
+        <div class="quick-actions" id="starter-actions" aria-label="开始提问">
+          <button type="button" data-request="现在几号端口在充电">当前充电端口</button>
+          <button type="button" data-request="帮我检查设备当前有没有异常">检查设备异常</button>
+          <button type="button" data-request="你能做什么">了解 DeviceOps</button>
         </div>
 
         <form class="composer" id="request-form">
           <label class="sr-only" for="request-input">设备运维请求</label>
           <textarea id="request-input" name="request" rows="1"
-                    placeholder="查询设备整体状态" required></textarea>
+                    placeholder="查询、诊断、控制设备或询问固件知识" required></textarea>
           <button class="send-button" id="send-button" type="submit"
                   aria-label="发送请求" title="发送请求">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -156,10 +177,15 @@
         </form>
       </section>
 
-      <aside class="execution-panel" aria-label="执行详情">
+      <aside class="execution-panel" id="execution-panel" aria-label="执行详情"
+             aria-hidden="true">
         <div class="panel-heading">
           <span>执行</span>
-          <strong id="run-status">IDLE</strong>
+          <div class="panel-heading-actions">
+            <strong id="run-status">IDLE</strong>
+            <button class="drawer-close" id="close-inspector" type="button"
+                    aria-label="关闭执行详情" title="关闭执行详情">&times;</button>
+          </div>
         </div>
 
         <dl class="command-facts">
@@ -179,6 +205,14 @@
             <dt>验证</dt>
             <dd id="verification-status">-</dd>
           </div>
+          <div>
+            <dt>耗时</dt>
+            <dd id="run-duration">-</dd>
+          </div>
+          <div>
+            <dt>用量</dt>
+            <dd id="run-usage">-</dd>
+          </div>
         </dl>
 
         <div class="panel-section-title">
@@ -194,9 +228,20 @@
         <dl class="evidence-list" id="evidence-list">
           <div><dt>状态</dt><dd>暂无</dd></div>
         </dl>
+
+        <div class="panel-section-title">
+          <span>知识协同</span>
+          <strong class="knowledge-badge" id="knowledge-status">未调用</strong>
+        </div>
+        <ul class="knowledge-list" id="knowledge-list">
+          <li class="knowledge-empty">等待知识证据</li>
+        </ul>
+        <div class="warning-list" id="warning-list" hidden></div>
       </aside>
+      <button class="inspector-backdrop" id="inspector-backdrop" type="button"
+              aria-label="关闭执行详情" hidden></button>
     </main>
 
-    <script src="/static/app.js" defer></script>
+    <script src="/static/app.js?v=1.6.0" defer></script>
   </body>
 </html>
