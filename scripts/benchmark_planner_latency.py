@@ -117,7 +117,17 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
         await direct.aclose()
         await fast.aclose()
 
-    speedup = direct_report["p50_ms"] / max(fast_report["p50_ms"], 0.01)
+    p50_speedup = direct_report["p50_ms"] / max(
+        fast_report["p50_ms"],
+        0.01,
+    )
+    p95_speedup = direct_report["p95_ms"] / max(
+        fast_report["p95_ms"],
+        0.01,
+    )
+    p95_reduction = (
+        1 - fast_report["p95_ms"] / direct_report["p95_ms"]
+    ) * 100
     return {
         "schema_version": 1,
         "model": args.model,
@@ -126,7 +136,9 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
         "repeats": args.repeats,
         "warmup": not args.skip_warmup,
         "strategies": [direct_report, fast_report],
-        "p50_speedup": round(speedup, 2),
+        "p50_speedup": round(p50_speedup, 2),
+        "p95_speedup": round(p95_speedup, 2),
+        "p95_reduction_percent": round(p95_reduction, 2),
         "evidence_boundary": [
             "Measures planner wall-clock latency on one local machine.",
             "Does not include device, RAG, network, or UI latency.",
@@ -165,6 +177,10 @@ def main() -> int:
             f"p95={strategy['p95_ms']:.2f} ms"
         )
     print(f"p50 speedup: {report['p50_speedup']:.2f}x")
+    print(
+        f"p95 speedup: {report['p95_speedup']:.2f}x "
+        f"({report['p95_reduction_percent']:.2f}% reduction)"
+    )
     print(f"Report: {args.output}")
     return 0
 

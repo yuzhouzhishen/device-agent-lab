@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
     <title>DeviceOps Console</title>
-    <link rel="stylesheet" href="/static/styles.css?v=1.6.0">
+    <link rel="stylesheet" href="/static/styles.css?v=1.6.2">
   </head>
   <body>
     <a class="skip-link" href="#request-input">跳到请求输入</a>
@@ -54,7 +54,7 @@
         <div class="device-visual" aria-label="五端口设备示意">
           <div class="device-topline">
             <div>
-              <strong id="device-power-budget">-- W</strong>
+              <strong id="device-total-power" aria-label="当前总输出">-- W</strong>
               <span id="device-model-label">正在读取设备</span>
             </div>
             <span class="device-led" id="device-led"></span>
@@ -242,6 +242,6 @@
               aria-label="关闭执行详情" hidden></button>
     </main>
 
-    <script src="/static/app.js?v=1.6.0" defer></script>
+    <script src="/static/app.js?v=1.6.2" defer></script>
   </body>
 </html>

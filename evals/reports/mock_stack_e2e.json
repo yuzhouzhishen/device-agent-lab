@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-19T02:20:05.731776+00:00",
+  "generated_at": "2026-08-21T03:03:02.912456+00:00",
   "suite": "public-mock-stack-e2e",
   "environment": {
     "device_backend": "mock",
@@ -18,14 +18,14 @@
     "passed": 8,
     "failed": 0,
     "pass_rate": 1.0,
-    "average_latency_ms": 5.28,
-    "p95_latency_ms": 11.5
+    "average_latency_ms": 6.79,
+    "p95_latency_ms": 15.12
   },
   "results": [
     {
       "id": "stack-health",
       "passed": true,
-      "duration_ms": 1.36,
+      "duration_ms": 1.61,
       "action": null,
       "status": "ok",
       "trace": [],
@@ -35,7 +35,7 @@
     {
       "id": "business-chat",
       "passed": true,
-      "duration_ms": 7.89,
+      "duration_ms": 10.89,
       "action": "respond_chat",
       "status": "completed",
       "trace": [
@@ -49,7 +49,7 @@
     {
       "id": "firmware-knowledge-with-citation",
       "passed": true,
-      "duration_ms": 11.5,
+      "duration_ms": 15.12,
       "action": "answer_knowledge",
       "status": "completed",
       "trace": [
@@ -58,15 +58,14 @@
         "summarize"
       ],
       "citation_sources": [
-        "esp-idf-nvs",
-        "esp-idf-wifi-events"
+        "esp-idf-nvs"
       ],
       "failures": []
     },
     {
       "id": "mock-device-query",
       "passed": true,
-      "duration_ms": 3.1,
+      "duration_ms": 3.87,
       "action": "get_status",
       "status": "completed",
       "trace": [
@@ -80,7 +79,7 @@
     {
       "id": "device-diagnosis-with-rag",
       "passed": true,
-      "duration_ms": 8.01,
+      "duration_ms": 10.55,
       "action": "diagnose_port",
       "status": "completed",
       "trace": [
@@ -99,7 +98,7 @@
     {
       "id": "verified-device-control",
       "passed": true,
-      "duration_ms": 4.72,
+      "duration_ms": 6.22,
       "action": "set_port_power",
       "status": "completed",
       "trace": [
@@ -115,7 +114,7 @@
     {
       "id": "post-control-state-query",
       "passed": true,
-      "duration_ms": 2.61,
+      "duration_ms": 2.91,
       "action": "get_port_status",
       "status": "completed",
       "trace": [
@@ -129,7 +128,7 @@
     {
       "id": "out-of-scope-refusal",
       "passed": true,
-      "duration_ms": 3.03,
+      "duration_ms": 3.16,
       "action": "unsupported_request",
       "status": "completed",
       "trace": [

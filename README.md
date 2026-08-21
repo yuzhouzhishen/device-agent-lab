@@ -5,7 +5,7 @@
 测试设备。诊断链路还会调用独立的 Firmware Knowledge Agent，用实时遥测和业务
 文档共同生成结论。
 
-当前冻结版本：`1.6.0`。
+当前冻结版本：`1.6.2`。
 
 ## 当前能力
 
@@ -24,6 +24,18 @@
 | 可观测性 | 节点 Trace、逐步耗时、模型 token、JSONL 审计、知识引用 |
 | 部署 | Docker Compose；已在 macOS OrbStack 验证 |
 | 测试 | `159 passed` |
+
+## 演示截图
+
+| 公开 Mock 控制台 | 自动控制与执行证据 |
+| --- | --- |
+| ![DeviceOps Mock 控制台](docs/screenshots/deviceops-console.jpg) | ![DeviceOps 控制闭环与 Trace](docs/screenshots/deviceops-control-trace.jpg) |
+
+| RAG 知识协同 | 390 px 移动端 |
+| --- | --- |
+| ![DeviceOps RAG 回答与引用](docs/screenshots/deviceops-knowledge.jpg) | ![DeviceOps 移动端](docs/screenshots/deviceops-mobile.jpg) |
+
+以上截图均来自一键公开 Mock 栈，不包含 PSN、真实设备别名、API Key 或私有语料。
 
 ## 架构
 
@@ -140,8 +152,8 @@ API Key、私有语料或真实设备凭证。默认入口为 DeviceOps `http://
 
 它通过兄弟项目自己的 Python 环境调用真实 Firmware RAG FastAPI 端点，覆盖
 `DeviceOps API -> LangGraph -> HttpKnowledgeGateway -> Firmware RAG API`，以及
-Mock 查询、诊断、自动控制和操作后校验。当前公开用例为 `8/8`，本机运行 P95
-为 `11.50 ms`；该耗时只属于 Rule Planner、3 篇公开语料和 Mock 设备，不代表
+Mock 查询、诊断、自动控制和操作后校验。当前公开用例为 `8/8`，本机运行平均
+`6.79 ms`、P95 `15.12 ms`；该耗时只属于 Rule Planner、3 篇公开语料和 Mock 设备，不代表
 Ollama、真实 MCP 或生产网络。逐条报告见
 [`evals/reports/mock_stack_e2e.json`](evals/reports/mock_stack_e2e.json)。
 
@@ -233,7 +245,7 @@ docker compose -f deploy/compose.yaml ps
 - 159 项自动化测试通过。
 - 8 条公开 Mock 跨项目闭环用例全部通过，覆盖健康检查、业务对话、带来源引用的
   NVS 知识问答、设备查询、RAG 增强诊断、控制后校验、状态复查和范围外拒答；
-  本机 P95 `11.50 ms`。
+  本机平均 `6.79 ms`、P95 `15.12 ms`。
 - 40 条人工标注 Planner Eval 覆盖聊天、知识、范围外请求、上下文、查询、诊断、
   控制、澄清和安全；规则基线 `40/40`。
 - 本地 `llama3.1:8b` 使用同一数据集完成真实结构化路由评测，结果见
@@ -267,7 +279,13 @@ node --check src/device_agent_lab/web/app.js
 
 该命令使用同一批明确请求，对比“全部走 `llama3.1:8b`”与“高置信度规则快路径，
 模糊请求保留模型规划”。报告仅衡量 Planner 墙钟耗时，不包含 UI、RAG、设备或
-网络延迟；未在当前机器重新执行前不应引用具体加速倍数。
+网络延迟。
+
+2026-08-21 本机基线使用 6 类固定请求、每类 2 次：两种策略动作准确率均为
+`12/12`；纯 Ollama P50/P95 为 `4548.76/5789.04 ms`，快速路由为
+`0.03/8.30 ms`，P95 降低 `99.86%`。亚毫秒 P50 对计时噪声敏感，因此面试只讲
+P95 和原始口径，不宣称通用加速倍数。逐条结果见
+[`benchmarks/reports/planner_latency_ollama.json`](benchmarks/reports/planner_latency_ollama.json)。
 
 ## 目录
 

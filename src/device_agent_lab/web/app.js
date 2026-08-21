@@ -110,7 +110,7 @@ const elements = {
   knowledgeLabel: document.querySelector("#knowledge-label"),
   controlLabel: document.querySelector("#control-label"),
   devicePanelLabel: document.querySelector("#device-panel-label"),
-  devicePowerBudget: document.querySelector("#device-power-budget"),
+  deviceTotalPower: document.querySelector("#device-total-power"),
   deviceModelLabel: document.querySelector("#device-model-label"),
   deviceLed: document.querySelector("#device-led"),
   deviceVisualPorts: document.querySelector("#device-ports"),
@@ -927,17 +927,32 @@ function updatePortsFromResult(result) {
   if (evidence.device_status?.status === "ok") {
     storePorts(evidence.device_status.data?.ports, {preferActive: true});
   }
-  renderPorts();
-  if (
+  const hasTelemetryUpdate = Boolean(
     devicePorts
     || result.port
     || result.after?.data
     || evidence.port_status?.data
     || evidence.device_status?.data
-  ) {
+  );
+  if (hasTelemetryUpdate) {
+    renderTotalPowerFromPorts();
+  }
+  renderPorts();
+  if (hasTelemetryUpdate) {
     elements.deviceLastUpdated.textContent = formatSnapshotTime(
       new Date().toISOString(),
     );
+  }
+}
+
+function renderTotalPowerFromPorts() {
+  const totalPower = [...state.ports.values()].reduce(
+    (total, port) => total + (Number(port?.power_w) || 0),
+    0,
+  );
+  elements.deviceTotalPower.textContent = `${Math.round(totalPower)}W`;
+  if (state.deviceSnapshot) {
+    state.deviceSnapshot.total_power_w = totalPower;
   }
 }
 
@@ -1117,7 +1132,7 @@ async function loadDeviceStatus() {
     state.deviceSnapshot = null;
     state.ports.clear();
     state.recentPorts.clear();
-    elements.devicePowerBudget.textContent = "-- W";
+    elements.deviceTotalPower.textContent = "-- W";
     elements.deviceModelLabel.textContent = "状态不可用";
     elements.deviceContext.textContent = "设备状态读取失败";
     elements.deviceLastUpdated.textContent = "读取失败";
@@ -1135,9 +1150,9 @@ function renderDeviceSnapshot(snapshot) {
   storePorts(snapshot?.ports, {preferActive: true});
 
   const model = snapshot?.model || snapshot?.product_family || "型号未知";
-  const budget = Number(snapshot?.power_budget_w);
-  elements.devicePowerBudget.textContent = Number.isFinite(budget)
-    ? `${Math.round(budget)}W`
+  const totalPower = Number(snapshot?.total_power_w);
+  elements.deviceTotalPower.textContent = Number.isFinite(totalPower)
+    ? `${Math.round(totalPower)}W`
     : "-- W";
   elements.deviceModelLabel.textContent = snapshot?.firmware_version
     ? `${model} · ${snapshot.firmware_version}`

@@ -1,0 +1,256 @@
+{
+  "schema_version": 1,
+  "model": "llama3.1:8b",
+  "ollama_url": "http://127.0.0.1:11434",
+  "case_count": 6,
+  "repeats": 2,
+  "warmup": true,
+  "strategies": [
+    {
+      "strategy": "direct-ollama",
+      "request_count": 12,
+      "correct_count": 12,
+      "accuracy": 1.0,
+      "average_ms": 4366.18,
+      "p50_ms": 4548.76,
+      "p95_ms": 5789.04,
+      "measurements": [
+        {
+          "case_id": "chat-identity",
+          "repeat": 1,
+          "duration_ms": 2489.38,
+          "expected_action": "respond_chat",
+          "actual_action": "respond_chat",
+          "correct": true,
+          "planner_model": "llama3.1:8b"
+        },
+        {
+          "case_id": "device-charging-ports",
+          "repeat": 1,
+          "duration_ms": 4986.49,
+          "expected_action": "get_status",
+          "actual_action": "get_status",
+          "correct": true,
+          "planner_model": "llama3.1:8b"
+        },
+        {
+          "case_id": "port-status",
+          "repeat": 1,
+          "duration_ms": 4395.7,
+          "expected_action": "get_port_status",
+          "actual_action": "get_port_status",
+          "correct": true,
+          "planner_model": "llama3.1:8b"
+        },
+        {
+          "case_id": "port-diagnosis",
+          "repeat": 1,
+          "duration_ms": 5390.04,
+          "expected_action": "diagnose_port",
+          "actual_action": "diagnose_port",
+          "correct": true,
+          "planner_model": "llama3.1:8b"
+        },
+        {
+          "case_id": "port-control",
+          "repeat": 1,
+          "duration_ms": 4518.21,
+          "expected_action": "set_port_power",
+          "actual_action": "set_port_power",
+          "correct": true,
+          "planner_model": "llama3.1:8b"
+        },
+        {
+          "case_id": "firmware-knowledge",
+          "repeat": 1,
+          "duration_ms": 4063.78,
+          "expected_action": "answer_knowledge",
+          "actual_action": "answer_knowledge",
+          "correct": true,
+          "planner_model": "llama3.1:8b"
+        },
+        {
+          "case_id": "chat-identity",
+          "repeat": 2,
+          "duration_ms": 2804.89,
+          "expected_action": "respond_chat",
+          "actual_action": "respond_chat",
+          "correct": true,
+          "planner_model": "llama3.1:8b"
+        },
+        {
+          "case_id": "device-charging-ports",
+          "repeat": 2,
+          "duration_ms": 4940.56,
+          "expected_action": "get_status",
+          "actual_action": "get_status",
+          "correct": true,
+          "planner_model": "llama3.1:8b"
+        },
+        {
+          "case_id": "port-status",
+          "repeat": 2,
+          "duration_ms": 4579.31,
+          "expected_action": "get_port_status",
+          "actual_action": "get_port_status",
+          "correct": true,
+          "planner_model": "llama3.1:8b"
+        },
+        {
+          "case_id": "port-diagnosis",
+          "repeat": 2,
+          "duration_ms": 5789.04,
+          "expected_action": "diagnose_port",
+          "actual_action": "diagnose_port",
+          "correct": true,
+          "planner_model": "llama3.1:8b"
+        },
+        {
+          "case_id": "port-control",
+          "repeat": 2,
+          "duration_ms": 4723.38,
+          "expected_action": "set_port_power",
+          "actual_action": "set_port_power",
+          "correct": true,
+          "planner_model": "llama3.1:8b"
+        },
+        {
+          "case_id": "firmware-knowledge",
+          "repeat": 2,
+          "duration_ms": 3713.34,
+          "expected_action": "answer_knowledge",
+          "actual_action": "answer_knowledge",
+          "correct": true,
+          "planner_model": "llama3.1:8b"
+        }
+      ]
+    },
+    {
+      "strategy": "confidence-gated-fast-path",
+      "request_count": 12,
+      "correct_count": 12,
+      "accuracy": 1.0,
+      "average_ms": 1.62,
+      "p50_ms": 0.03,
+      "p95_ms": 8.3,
+      "measurements": [
+        {
+          "case_id": "chat-identity",
+          "repeat": 1,
+          "duration_ms": 5.44,
+          "expected_action": "respond_chat",
+          "actual_action": "respond_chat",
+          "correct": true,
+          "planner_model": "rules-fast-path"
+        },
+        {
+          "case_id": "device-charging-ports",
+          "repeat": 1,
+          "duration_ms": 5.49,
+          "expected_action": "get_status",
+          "actual_action": "get_status",
+          "correct": true,
+          "planner_model": "rules-fast-path"
+        },
+        {
+          "case_id": "port-status",
+          "repeat": 1,
+          "duration_ms": 8.3,
+          "expected_action": "get_port_status",
+          "actual_action": "get_port_status",
+          "correct": true,
+          "planner_model": "rules-fast-path"
+        },
+        {
+          "case_id": "port-diagnosis",
+          "repeat": 1,
+          "duration_ms": 0.06,
+          "expected_action": "diagnose_port",
+          "actual_action": "diagnose_port",
+          "correct": true,
+          "planner_model": "rules-fast-path"
+        },
+        {
+          "case_id": "port-control",
+          "repeat": 1,
+          "duration_ms": 0.03,
+          "expected_action": "set_port_power",
+          "actual_action": "set_port_power",
+          "correct": true,
+          "planner_model": "rules-fast-path"
+        },
+        {
+          "case_id": "firmware-knowledge",
+          "repeat": 1,
+          "duration_ms": 0.03,
+          "expected_action": "answer_knowledge",
+          "actual_action": "answer_knowledge",
+          "correct": true,
+          "planner_model": "rules-fast-path"
+        },
+        {
+          "case_id": "chat-identity",
+          "repeat": 2,
+          "duration_ms": 0.01,
+          "expected_action": "respond_chat",
+          "actual_action": "respond_chat",
+          "correct": true,
+          "planner_model": "rules-fast-path"
+        },
+        {
+          "case_id": "device-charging-ports",
+          "repeat": 2,
+          "duration_ms": 0.02,
+          "expected_action": "get_status",
+          "actual_action": "get_status",
+          "correct": true,
+          "planner_model": "rules-fast-path"
+        },
+        {
+          "case_id": "port-status",
+          "repeat": 2,
+          "duration_ms": 0.02,
+          "expected_action": "get_port_status",
+          "actual_action": "get_port_status",
+          "correct": true,
+          "planner_model": "rules-fast-path"
+        },
+        {
+          "case_id": "port-diagnosis",
+          "repeat": 2,
+          "duration_ms": 0.01,
+          "expected_action": "diagnose_port",
+          "actual_action": "diagnose_port",
+          "correct": true,
+          "planner_model": "rules-fast-path"
+        },
+        {
+          "case_id": "port-control",
+          "repeat": 2,
+          "duration_ms": 0.01,
+          "expected_action": "set_port_power",
+          "actual_action": "set_port_power",
+          "correct": true,
+          "planner_model": "rules-fast-path"
+        },
+        {
+          "case_id": "firmware-knowledge",
+          "repeat": 2,
+          "duration_ms": 0.02,
+          "expected_action": "answer_knowledge",
+          "actual_action": "answer_knowledge",
+          "correct": true,
+          "planner_model": "rules-fast-path"
+        }
+      ]
+    }
+  ],
+  "p50_speedup": 151625.33,
+  "p95_speedup": 697.47,
+  "p95_reduction_percent": 99.86,
+  "evidence_boundary": [
+    "Measures planner wall-clock latency on one local machine.",
+    "Does not include device, RAG, network, or UI latency.",
+    "Results should not be generalized to other hardware or models."
+  ]
+}

@@ -98,7 +98,7 @@ def create_app(
 
     app = FastAPI(
         title="DeviceOps Agent API",
-        version="1.6.0",
+        version="1.6.2",
         lifespan=lifespan,
     )
     app.mount(

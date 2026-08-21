@@ -1,6 +1,6 @@
 [project]
 name = "device-agent-lab"
-version = "1.6.0"
+version = "1.6.2"
 description = "A conversational DeviceOps Agent with LangGraph, MCP device backends, RAG, memory, and verified control."
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
